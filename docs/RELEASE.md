@@ -80,7 +80,7 @@ Each release should include:
 
 ## Publish
 
-Publishing can be done from GitHub Actions by pushing a version tag such as `v1.2.0`, or by running the `CI` workflow manually with `publish=true`.
+Publishing can be done from GitHub Actions by pushing a version tag such as `v1.2.1`, or by running the `CI` workflow manually with `publish=true`.
 
 To publish locally, pack first and then push:
 

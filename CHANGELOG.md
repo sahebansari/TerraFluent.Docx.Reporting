@@ -4,12 +4,14 @@ All notable changes to TerraFluent.Docx.Reporting are documented here.
 
 This project follows semantic versioning. Public releases are distributed as a free MIT-licensed NuGet package.
 
-## Unreleased
+## 1.2.1
 
 - Reworked DOCX template replacement to use structured WordprocessingML text traversal, including placeholders split across Word runs and tagged content controls.
 - Added fail-fast validation for public document, page, image, and template APIs.
 - Enabled warning-clean builds with warnings treated as errors.
 - Expanded CI coverage with Windows/Linux build and test jobs, sample generation, package consumption smoke checks, and LibreOffice conversion smoke checks.
+- Completed XML documentation comments across the public fluent API and removed the missing-documentation warning suppression, so the package's generated `.xml` doc file now covers the full public surface.
+- Fixed documentation drift in the release checklist and added template-replacement and validation-exception guidance to the troubleshooting guide.
 
 ## 1.2.0
 

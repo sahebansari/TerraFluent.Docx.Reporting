@@ -9,7 +9,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>TerraFluent.Docx.Reporting</PackageId>
     <Title>TerraFluent.Docx.Reporting</Title>
-    <VersionPrefix>1.2.0</VersionPrefix>
+    <VersionPrefix>1.2.1</VersionPrefix>
     <Authors>TerraFluent.Docx.Reporting contributors</Authors>
     <Company>TerraFluent.Docx.Reporting contributors</Company>
     <Product>TerraFluent.Docx.Reporting</Product>
