@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <PackageId>TerraFluent.Docx.Reporting</PackageId>
+    <Title>TerraFluent.Docx.Reporting</Title>
+    <VersionPrefix>1.2.0</VersionPrefix>
+    <Authors>TerraFluent.Docx.Reporting contributors</Authors>
+    <Company>TerraFluent.Docx.Reporting contributors</Company>
+    <Product>TerraFluent.Docx.Reporting</Product>
+    <Description>A fluent .NET library for generating professional DOCX documents with tables, images, charts, headers, footers, styles, templates, page layout, and Open XML validation-friendly output.</Description>
+    <PackageTags>docx;word;openxml;document-generation;reports;reporting;invoices;templates</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReleaseNotes>See CHANGELOG.md for release notes.</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/sahebansari/TerraFluent.Docx.Reporting</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sahebansari/TerraFluent.Docx.Reporting.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\CHANGELOG.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" />
+    <None Include="..\..\docs\**\*.md" Pack="true" PackagePath="docs\" />
+  </ItemGroup>
+
+</Project>

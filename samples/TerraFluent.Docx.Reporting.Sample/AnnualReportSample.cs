@@ -1,0 +1,486 @@
+using TerraFluent.Docx.Reporting;
+using TerraFluent.Docx.Reporting.Infra;
+
+internal static class AnnualReportSample
+{
+    public static string Generate(string outputDirectory, string logoPath, string imagePath)
+    {
+        var documentPath = Path.Combine(outputDirectory, "sample-annual-report.docx");
+        var generatedOn = new DateTime(2026, 6, 7);
+        var imageBytes = File.ReadAllBytes(imagePath);
+
+        Document.Create(container =>
+        {
+            container
+                .Theme(theme => theme
+                    .DefaultFont("Aptos", 10.5f)
+                    .DefaultTextColor(Colors.Grey.L900)
+                    .HeadingColor(Colors.Blue.L800)
+                    .AccentColor(Colors.Blue.L700)
+                    .HyperlinkColor(Colors.Red.L700)
+                    .TableBorder(0.75f, Colors.Grey.L300)
+                    .TableCellPadding(4, 6)
+                    .TableHeaderBackground(Colors.Blue.L700)
+                    .TableAlternateRowBackground(Colors.Grey.L100)
+                    .TableHeaderRowMinHeight(24)
+                    .TableRowMinHeight(22))
+                .ParagraphStyle("Executive Note", style => style
+                    .Bold()
+                    .FontColor(Colors.Blue.L800)
+                    .LeftIndent(14)
+                    .RightIndent(14)
+                    .SpacingBefore(6)
+                    .SpacingAfter(6)
+                    .KeepLinesTogether())
+                .TableStyle("Report Table", table => table
+                    .Border(0.75f, Colors.Grey.L300)
+                    .CellPadding(4, 6)
+                    .HeaderBackground(Colors.Blue.L700)
+                    .AlternateRowBackground(Colors.Grey.L100)
+                    .HeaderRowMinHeight(24)
+                    .RowMinHeight(22))
+                .MetadataTitle("Northwind Consulting Annual Report 2026")
+                .MetadataAuthor("Northwind Consulting")
+                .MetadataSubject("Annual report sample generated with TerraFluent.Docx.Reporting")
+                .MetadataKeywords("annual report, TerraFluent.Docx.Reporting, sample, docx")
+                .MetadataCreator("TerraFluent.Docx.Reporting Sample App");
+
+            container.Page(page =>
+            {
+                page.Size(PageSize.A4);
+                page.Margin(Unit.Centimetre(2.0f));
+                page.PageNumberStart(1);
+                page.Background(Colors.Grey.L100);
+                page.Watermark("DRAFT", Colors.Grey.L500, 84);
+                page.DefaultTextStyle(t => t.FontFamily("Aptos").FontSize(10.5f).FontColor(Colors.Grey.L900).SpacingAfter(4));
+
+                page.FirstPageHeader().Row(row =>
+                {
+                    row.Spacing(8);
+                    row.ConstantItem(42).Image(logoPath, img => img
+                        .Width(34)
+                        .AltText("Northwind Consulting logo"));
+                    row.RelativeItem().Text("Northwind Consulting", t => t.Bold().FontSize(13).FontColor(Colors.Blue.L800));
+                    row.AutoItem().Text("Annual Report 2026", t => t.Bold().FontSize(11).FontColor(Colors.Grey.L700).AlignRight());
+                });
+
+                page.Header().Column(hdr =>
+                {
+                    hdr.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text("Northwind Consulting Annual Report", t => t.Bold().FontColor(Colors.Blue.L800));
+                        row.AutoItem().Text(t =>
+                        {
+                            t.Span("Page ").FontSize(9).FontColor(Colors.Grey.L600);
+                            t.CurrentPageNumber(s => s.FontSize(9).FontColor(Colors.Grey.L600));
+                            t.AlignRight();
+                        });
+                    });
+                    hdr.Item().Line();
+                });
+
+                page.EvenPageHeader().Column(hdr =>
+                {
+                    hdr.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text(t =>
+                        {
+                            t.Span("Page ").FontSize(9).FontColor(Colors.Grey.L600);
+                            t.CurrentPageNumber(s => s.FontSize(9).FontColor(Colors.Grey.L600));
+                        });
+                        row.AutoItem().Text("Northwind Consulting Annual Report", t => t.Bold().FontColor(Colors.Grey.L700).AlignRight());
+                    });
+                    hdr.Item().Line();
+                });
+
+                page.FirstPageFooter().Text($"Prepared on {generatedOn:MMMM dd, yyyy}", t => t.FontSize(9).FontColor(Colors.Grey.L600).AlignCenter());
+
+                page.Footer().Column(ftr =>
+                {
+                    ftr.Item().Line();
+                    ftr.Item().Row(row =>
+                    {
+                        row.ConstantItem(24).Image(logoPath, img => img.Width(18).AltText("Northwind Consulting logo"));
+                        row.RelativeItem().Text("Confidential sample report generated by TerraFluent.Docx.Reporting.", t => t.FontSize(9).FontColor(Colors.Grey.L600).AlignCenter());
+                        row.AutoItem().Text(t =>
+                        {
+                            t.Span("Page ").FontSize(9).FontColor(Colors.Grey.L600);
+                            t.CurrentPageNumber(s => s.FontSize(9).FontColor(Colors.Grey.L600));
+                            t.Span(" of ").FontSize(9).FontColor(Colors.Grey.L600);
+                            t.TotalPages(s => s.FontSize(9).FontColor(Colors.Grey.L600));
+                            t.AlignRight();
+                        });
+                    });
+                });
+
+                page.EvenPageFooter().Text("Even page footer: Northwind Consulting", t => t.FontSize(9).FontColor(Colors.Grey.L600).AlignCenter());
+
+                page.Content().Column(col =>
+                {
+                    col.Spacing(8);
+
+                    col.Item().Image(logoPath, img => img
+                        .Width(120)
+                        .AltText("Northwind Consulting logo")
+                        .AlignCenter()
+                        .Caption("Northwind Consulting"));
+
+                    col.Item().H1("Annual Report");
+                    col.Item().Text("Fiscal Year 2026", t => t.AlignCenter().FontSize(18).FontColor(Colors.Blue.L800).SpacingAfter(8));
+                    col.Item().Text("This sample report demonstrates TerraFluent.Docx.Reporting features in a realistic business document: themed styles, section headers and footers, page numbering, images, captions, hyperlinks, styled text, nested lists, paragraph controls, tables, and landscape sections.", t => t.Justify().SpacingAfter(8));
+                    col.Item().TableOfContents("Table of Contents", minLevel: 1, maxLevel: 2);
+
+                    col.Item().Row(row =>
+                    {
+                        row.Spacing(8);
+                        row.RelativeItem().Table(table =>
+                        {
+                            table.Style("Report Table");
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.RelativeColumn(2);
+                                cols.RelativeColumn(1);
+                            });
+                            table.HeaderRow(r =>
+                            {
+                                r.Cell().Text("Metric", t => t.Bold().FontColor(Colors.White.Default));
+                                r.Cell().Text("FY 2026", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            });
+                            AddMetricRow(table, "Revenue", "$18.4M");
+                            AddMetricRow(table, "Operating margin", "21.6%");
+                            AddMetricRow(table, "Customer retention", "94%");
+                            AddMetricRow(table, "Delivery satisfaction", "4.8 / 5");
+                        });
+
+                        row.RelativeItem().Image(imageBytes, "annual-report-cover.png", img => img
+                            .Width(150)
+                            .MaxWidth(160)
+                            .AltText("Abstract brand artwork")
+                            .AlignCenter()
+                            .Caption("Figure 1. Brand artwork embedded from a byte array."));
+                    });
+
+                    col.Item().H2("Letter From The Managing Partner");
+                    col.Item().Bookmark("partner-letter");
+                    col.Item().Image(imageBytes, "partner-letter-float.png", img => img
+                        .Width(118)
+                        .WrapSquare(8)
+                        .FloatRight(8)
+                        .Border(1, Colors.Grey.L400)
+                        .Rounded()
+                        .Crop(4, 4, 4, 4)
+                        .AltText("Floating brand artwork with text wrapping"));
+                    col.Item().Text(t =>
+                    {
+                        t.Span("Northwind Consulting ");
+                        t.Span("delivered another strong year").Bold().FontColor(Colors.Blue.L700);
+                        t.Span(", combining disciplined operations with new document automation capabilities. ");
+                        t.Span("TerraFluent.Docx.Reporting").Italic();
+                        t.Span(" helped our teams generate accurate client-ready reports directly from application data.");
+                        t.Footnote("Sample footnote: TerraFluent.Docx.Reporting can now emit real Word footnote parts.");
+                    });
+
+                    col.Item().Text("Our priorities remain practical: build reliable systems, make client communication clearer, and shorten the distance between data and decisions. The examples in this document show how reusable document components can support that work.", t => t.Style("Executive Note"));
+
+                    col.Item().Text(t =>
+                    {
+                        t.Span("Read more about our document automation approach at ");
+                        t.Hyperlink("northwind.example/automation", "https://northwind.example/automation");
+                        t.Span(".");
+                        t.Endnote("Sample endnote: endnotes are emitted into a dedicated Word endnotes part.");
+                    });
+
+                    col.Item().Bookmark("strategic-highlights", "Strategic Highlights", t => t.Style("Heading2"));
+                    col.Item().BulletList(list =>
+                    {
+                        list.Marker(">", fontFamily: "Aptos");
+                        list.Marker("-", level: 1, fontFamily: "Aptos");
+                        list.Item("Expanded document automation offerings for regulated operations.");
+                        list.Item("Reusable report templates", level: 1);
+                        list.Item("Invoice and proposal workflows", level: 1);
+                        list.Item("Improved client delivery metrics through structured reporting.");
+                        list.Item(t =>
+                        {
+                            t.Span("Maintained ");
+                            t.Span("94% customer retention").Bold();
+                            t.Span(" while onboarding new enterprise accounts.");
+                        });
+                    });
+
+                    col.Item().Bookmark("operating-review", "Operating Review", t => t.Style("Heading2"));
+                    col.Item().Text(t =>
+                    {
+                        t.Span("This section refers back to ");
+                        t.CrossReference("strategic-highlights", "Strategic Highlights");
+                        t.Span(" and forward to ");
+                        t.CrossReference("revenue-by-practice", "Revenue By Practice");
+                        t.Span(".");
+                    });
+                    col.Item().NumberedList(list =>
+                    {
+                        list.Marker("%1.", level: 0);
+                        list.Marker("%2)", level: 1);
+                        list.Item("Standardized project kickoff documents.");
+                        list.Item("Defined document sections and table patterns.", level: 1);
+                        list.Item("Added visual QA to sample generation.", level: 1);
+                        list.Item("Improved invoicing samples with multi-page tables.");
+                        list.Item("Introduced reusable themes and page layout controls.");
+                    });
+
+                    col.Item().Chart(chart => chart
+                        .Title("Quarterly Revenue: Actual vs Target")
+                        .Series("Actual", s => s
+                            .Color(Colors.Green.L700)
+                            .Bar("Q1", 4.1)
+                            .Bar("Q2", 4.3)
+                            .Bar("Q3", 4.8)
+                            .Bar("Q4", 5.2))
+                        .Series("Target", s => s
+                            .Color(Colors.Grey.L400)
+                            .Bar("Q1", 4.0)
+                            .Bar("Q2", 4.2)
+                            .Bar("Q3", 4.5)
+                            .Bar("Q4", 4.8)));
+
+                    col.Item().Bookmark("revenue-by-practice", "Revenue By Practice", t => t.Style("Heading2"));
+                    col.Item().Text(t =>
+                    {
+                        t.TabStop(220, TabStopAlignment.Right);
+                        t.Span("Revenue target");
+                        t.Tab();
+                        t.Span("$17.5M").Bold();
+                    });
+                    col.Item().Table(table =>
+                    {
+                        table.Style("Report Table");
+                        table.WidthPercent(92).AlignCenter();
+                        table.ColumnsDefinition(cols =>
+                        {
+                            cols.RelativeColumn(3);
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(1);
+                        });
+
+                        table.HeaderRow(row =>
+                        {
+                            row.KeepTogether();
+                            row.Cell().Text("Practice", t => t.Bold().FontColor(Colors.White.Default));
+                            row.Cell().Text("FY 2025", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            row.Cell().Text("FY 2026", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            row.Cell().Text("Growth", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                        });
+
+                        AddFinancialRow(table, "Document Automation", "$5.8M", "$7.4M", "27.6%");
+                        AddFinancialRow(table, "Operations Consulting", "$4.2M", "$4.8M", "14.3%");
+                        AddFinancialRow(table, "Compliance Reporting", "$3.6M", "$4.1M", "13.9%");
+                        AddFinancialRow(table, "Managed Delivery", "$1.9M", "$2.1M", "10.5%");
+                        AddTotalRow(table, "Total Revenue", "$15.5M", "$18.4M", "18.7%");
+                    });
+
+                    col.Item().PageBreak();
+
+                    col.Item().Bookmark("governance-risk", "Governance And Risk", t => t.Style("Heading2"));
+                    col.Item().Text("The board reviewed operating risk, data quality, client confidentiality, and delivery capacity. This section uses paragraph pagination controls to keep important explanatory text together.", t => t.KeepWithNext().SpacingAfter(4));
+                    col.Item().Text("Risk oversight remains embedded in delivery planning. Teams use standard templates, checklists, and peer review before client documents are released.", t => t.LeftIndent(18).RightIndent(18).KeepLinesTogether());
+
+                    col.Item().Table(table =>
+                    {
+                        table.Style("Report Table");
+                        table.Border(0.75f, Colors.Grey.L400);
+                        table.WidthPercent(90).AlignCenter();
+                        table.ColumnsDefinition(cols =>
+                        {
+                            cols.RelativeColumn(2);
+                            cols.RelativeColumn(3);
+                            cols.RelativeColumn(2);
+                        });
+                        table.HeaderRow(row =>
+                        {
+                            row.Cell().Text("Risk Area", t => t.Bold().FontColor(Colors.White.Default));
+                            row.Cell().Text("Mitigation", t => t.Bold().FontColor(Colors.White.Default));
+                            row.Cell().Text("Status", t => t.Bold().FontColor(Colors.White.Default));
+                        });
+                        AddRiskRow(table, "Data quality", "Automated checks on source data and report totals.", "On track");
+                        AddRiskRow(table, "Client confidentiality", "Restricted sample assets and explicit metadata review.", "On track");
+                        AddRiskRow(table, "Delivery capacity", "Reusable document components and standardized QA.", "Monitoring");
+                        AddRiskRow(table, "Regulatory change", "Quarterly review of document language and controls.", "Monitoring");
+                    });
+
+                    col.Item().H2("Advanced Table Features");
+                    col.Item().Table(table =>
+                    {
+                        table.WidthPercent(78).AlignCenter().Border(0.75f, Colors.Grey.L400);
+                        table.ColumnsDefinition(cols =>
+                        {
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(2);
+                            cols.RelativeColumn(1);
+                        });
+                        table.HeaderRow(row =>
+                        {
+                            row.KeepTogether();
+                            row.Cell().Text("Area", t => t.Bold().FontColor(Colors.White.Default));
+                            row.Cell().Text("Control", t => t.Bold().FontColor(Colors.White.Default));
+                            row.Cell().Text("Status", t => t.Bold().FontColor(Colors.White.Default));
+                        });
+                        table.Row(row =>
+                        {
+                            row.Cell().VerticalMergeStart().Border(1, Colors.Blue.L700).Text("Finance", t => t.Bold());
+                            row.Cell().Text("Monthly close checklist");
+                            row.Cell().Text("Active", t => t.AlignRight());
+                        });
+                        table.Row(row =>
+                        {
+                            row.Cell().VerticalMergeContinue();
+                            row.Cell().Text("Revenue recognition review");
+                            row.Cell().Text("Active", t => t.AlignRight());
+                        });
+                        table.Row(row =>
+                        {
+                            row.Cell(2).Text("Rotated approval marker");
+                            row.Cell().TextDirectionTopToBottom().Text("APPROVED");
+                        });
+                    });
+                });
+            });
+
+            container.Page(page =>
+            {
+                page.Size(PageSize.A4);
+                page.Landscape();
+                page.Margin(Unit.Centimetre(1.5f));
+                page.Watermark("DRAFT", Colors.Grey.L500, 84);
+                page.DefaultTextStyle(t => t.FontFamily("Aptos").FontSize(9.5f).FontColor(Colors.Grey.L900).SpacingAfter(3));
+
+                page.Header().Column(hdr =>
+                {
+                    hdr.Item().Text("Appendix A - Five Quarter Performance Dashboard", t => t.Bold().FontColor(Colors.Blue.L800).AlignCenter());
+                    hdr.Item().Line();
+                });
+                page.Footer().Text(t =>
+                {
+                    t.Span("Page ").FontSize(9).FontColor(Colors.Grey.L600);
+                    t.CurrentPageNumber(s => s.FontSize(9).FontColor(Colors.Grey.L600));
+                    t.AlignCenter();
+                });
+
+                page.Content().Column(col =>
+                {
+                    col.Spacing(6);
+                    col.Item().H2("Performance Dashboard");
+                    col.Item().Bookmark("performance-dashboard");
+                    col.Item().Text("This appendix uses a landscape section to fit a wider operating dashboard.");
+                    col.Item().Table(table =>
+                    {
+                        table.Style("Report Table");
+                        table.ColumnsDefinition(cols =>
+                        {
+                            cols.RelativeColumn(2);
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(1);
+                            cols.RelativeColumn(1);
+                        });
+
+                        table.HeaderRow(row =>
+                        {
+                            row.Cell().Text("Measure", t => t.Bold().FontColor(Colors.White.Default));
+                            row.Cell().Text("Q1", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            row.Cell().Text("Q2", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            row.Cell().Text("Q3", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            row.Cell().Text("Q4", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            row.Cell().Text("FY", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                            row.Cell().Text("Target", t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+                        });
+
+                        AddDashboardRow(table, "Revenue", "$4.1M", "$4.3M", "$4.8M", "$5.2M", "$18.4M", "$17.5M");
+                        AddDashboardRow(table, "Gross margin", "47%", "48%", "49%", "50%", "49%", "48%");
+                        AddDashboardRow(table, "Utilization", "78%", "81%", "83%", "82%", "81%", "80%");
+                        AddDashboardRow(table, "Retention", "92%", "93%", "94%", "94%", "94%", "92%");
+                        AddDashboardRow(table, "NPS", "62", "64", "67", "69", "66", "65");
+                        AddDashboardRow(table, "Report cycle time", "5.2d", "4.8d", "4.1d", "3.7d", "4.4d", "4.5d");
+                    });
+
+                    using var imageStream = new MemoryStream(imageBytes);
+                    col.Item().Image(imageStream, "annual-report-dashboard-art.png", img => img
+                        .Height(70)
+                        .AltText("Abstract dashboard artwork")
+                        .AlignRight()
+                        .Caption("Figure 2. Stream-backed image in a landscape section."));
+                });
+            });
+        }).PublishDocx(documentPath);
+
+        return documentPath;
+    }
+
+    private static void AddMetricRow(ITableDescriptor table, string label, string value)
+    {
+        table.Row(row =>
+        {
+            row.Cell().Text(label);
+            row.Cell().Text(value, t => t.AlignRight().Bold());
+        });
+    }
+
+    private static void AddFinancialRow(ITableDescriptor table, string practice, string previous, string current, string growth)
+    {
+        table.Row(row =>
+        {
+            row.Cell().Text(practice);
+            row.Cell().Text(previous, t => t.AlignRight());
+            row.Cell().Text(current, t => t.AlignRight());
+            row.Cell().Text(growth, t => t.AlignRight().FontColor(Colors.Green.L700));
+        });
+    }
+
+    private static void AddTotalRow(ITableDescriptor table, string label, string previous, string current, string growth)
+    {
+        table.Row(row =>
+        {
+            row.Cell()
+                .Background(Colors.Blue.L700)
+                .VerticalAlignMiddle()
+                .Text(label, t => t.Bold().FontColor(Colors.White.Default));
+            row.Cell()
+                .Background(Colors.Blue.L700)
+                .VerticalAlignMiddle()
+                .Text(previous, t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+            row.Cell()
+                .Background(Colors.Blue.L700)
+                .VerticalAlignMiddle()
+                .Text(current, t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+            row.Cell()
+                .Background(Colors.Blue.L700)
+                .VerticalAlignMiddle()
+                .Text(growth, t => t.Bold().FontColor(Colors.White.Default).AlignRight());
+        });
+    }
+
+    private static void AddRiskRow(ITableDescriptor table, string risk, string mitigation, string status)
+    {
+        table.Row(row =>
+        {
+            row.Cell().VerticalAlignMiddle().Text(risk, t => t.Bold());
+            row.Cell().VerticalAlignMiddle().Text(mitigation);
+            row.Cell().VerticalAlignMiddle().Text(status, t => t.AlignRight());
+        });
+    }
+
+    private static void AddDashboardRow(ITableDescriptor table, string measure, string q1, string q2, string q3, string q4, string fy, string target)
+    {
+        table.Row(row =>
+        {
+            row.Cell().Text(measure, t => t.Bold());
+            row.Cell().Text(q1, t => t.AlignRight());
+            row.Cell().Text(q2, t => t.AlignRight());
+            row.Cell().Text(q3, t => t.AlignRight());
+            row.Cell().Text(q4, t => t.AlignRight());
+            row.Cell().Text(fy, t => t.AlignRight().Bold());
+            row.Cell().Text(target, t => t.AlignRight());
+        });
+    }
+}
