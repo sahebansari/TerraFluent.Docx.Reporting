@@ -2,6 +2,16 @@
 
 [Documentation Home](README.md) | [Getting Started](GETTING_STARTED.md) | [Feature Guide](FEATURES.md) | [API Reference](API.md)
 
+## Building A Document Throws An Exception
+
+TerraFluent.Docx.Reporting validates fluent API inputs eagerly, before any Open XML is written, so configuration mistakes fail fast at the call site instead of producing a damaged or unreadable `.docx`:
+
+- `ArgumentNullException` - a required callback, object, or stream argument was `null` (e.g. `Document.Create(null)`, `Component(null)`).
+- `ArgumentException` - a required string was `null`, empty, or whitespace (e.g. an image file path or page number format), or a stream was unreadable/unwritable.
+- `ArgumentOutOfRangeException` - a numeric value was outside its valid range, such as a negative margin, a non-positive width/height, or a column count outside 1-45.
+
+See [Public API Contract](API.md#public-api-contract) for the full validation contract.
+
 ## Word Shows A Repair Prompt
 
 Run the automated tests and inspect the generated document with Word.
@@ -31,8 +41,23 @@ Tips:
 
 - Use an absolute path when the current working directory is unclear.
 - Ensure file names have supported extensions such as `.png`, `.jpg`, or `.jpeg`.
+- Missing file paths and empty image byte arrays throw during document creation or publishing.
 - Use `AltText` for accessibility and easier inspection.
 - Use `MaxWidth` when documents may receive images of unknown size.
+
+## Template Values Are Not Replaced
+
+`DocxTemplate.Replace("Name", value)` replaces `{{Name}}`, including placeholders split across Word runs. It intentionally does not replace every bare occurrence of `Name`, which avoids accidental edits to ordinary document text.
+
+For authored Word templates, prefer tagged content controls for business fields:
+
+```csharp
+DocxTemplate.Open("template.docx")
+    .ReplaceContentControl("CustomerName", "Ada Lovelace")
+    .SaveAs("output.docx");
+```
+
+Content controls are matched by tag or alias.
 
 ## Page Background Does Not Change Per Section
 
@@ -76,4 +101,3 @@ The package should include:
 - `lib/net10.0/TerraFluent.Docx.Reporting.xml`
 
 See [Release And Publishing](RELEASE.md) for the full checklist.
-

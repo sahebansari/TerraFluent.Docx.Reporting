@@ -33,6 +33,7 @@ internal sealed class ContainerDescriptor : IContainer
     public IContainer Column(Action<IColumnDescriptor> configure)
     {
         var col = new ColumnDescriptor(_theme, _styles);
+        Guard.NotNull(configure, nameof(configure));
         configure(col);
         Element.Elements.Add(col.Element);
         return this;
@@ -41,6 +42,7 @@ internal sealed class ContainerDescriptor : IContainer
     public IContainer Row(Action<IRowDescriptor> configure)
     {
         var row = new RowDescriptor(_theme, _styles);
+        Guard.NotNull(configure, nameof(configure));
         configure(row);
         Element.Elements.Add(row.Element);
         return this;
@@ -57,6 +59,7 @@ internal sealed class ContainerDescriptor : IContainer
     public IContainer Text(Action<ITextDescriptor> configure)
     {
         var td = new TextDescriptor(string.Empty, _theme);
+        Guard.NotNull(configure, nameof(configure));
         configure(td);
         Element.Elements.Add(td.Element);
         return this;
@@ -105,6 +108,7 @@ internal sealed class ContainerDescriptor : IContainer
     private IContainer List(bool ordered, Action<IListDescriptor> configure)
     {
         var descriptor = new ListDescriptor(ordered, _theme);
+        Guard.NotNull(configure, nameof(configure));
         configure(descriptor);
         Element.Elements.Add(descriptor.Element);
         return this;
@@ -113,6 +117,7 @@ internal sealed class ContainerDescriptor : IContainer
     public IContainer Table(Action<ITableDescriptor> configure)
     {
         var td = new TableDescriptor(_theme, _styles);
+        Guard.NotNull(configure, nameof(configure));
         configure(td);
         Element.Elements.Add(td.Element);
         return this;
@@ -121,6 +126,7 @@ internal sealed class ContainerDescriptor : IContainer
     public IContainer Chart(Action<IChartDescriptor> configure)
     {
         var descriptor = new ChartDescriptor(_theme);
+        Guard.NotNull(configure, nameof(configure));
         configure(descriptor);
         Element.Elements.Add(descriptor.Element);
         return this;
@@ -128,6 +134,10 @@ internal sealed class ContainerDescriptor : IContainer
 
     public IContainer Image(string filePath, float? width = null)
     {
+        Guard.NotWhiteSpace(filePath, nameof(filePath));
+        if (width.HasValue)
+            Guard.PositiveFinite(width.Value, nameof(width));
+
         Element.Elements.Add(new ImageElement
         {
             FilePath = filePath,
@@ -139,6 +149,9 @@ internal sealed class ContainerDescriptor : IContainer
 
     public IContainer Image(string filePath, Action<IImageDescriptor> configure)
     {
+        Guard.NotWhiteSpace(filePath, nameof(filePath));
+        Guard.NotNull(configure, nameof(configure));
+
         var image = new ImageElement
         {
             FilePath = filePath,
@@ -151,6 +164,11 @@ internal sealed class ContainerDescriptor : IContainer
 
     public IContainer Image(byte[] imageBytes, string fileName, Action<IImageDescriptor>? configure = null)
     {
+        Guard.NotNull(imageBytes, nameof(imageBytes));
+        if (imageBytes.Length == 0)
+            throw new ArgumentException("Image byte array cannot be empty.", nameof(imageBytes));
+        Guard.NotWhiteSpace(fileName, nameof(fileName));
+
         var image = new ImageElement
         {
             Bytes = imageBytes.ToArray(),
@@ -163,6 +181,11 @@ internal sealed class ContainerDescriptor : IContainer
 
     public IContainer Image(Stream imageStream, string fileName, Action<IImageDescriptor>? configure = null)
     {
+        Guard.NotNull(imageStream, nameof(imageStream));
+        if (!imageStream.CanRead)
+            throw new ArgumentException("Image stream must be readable.", nameof(imageStream));
+        Guard.NotWhiteSpace(fileName, nameof(fileName));
+
         using var ms = new MemoryStream();
         imageStream.CopyTo(ms);
         return Image(ms.ToArray(), fileName, configure);
@@ -182,6 +205,7 @@ internal sealed class ContainerDescriptor : IContainer
 
     public IContainer Component(IComponent component)
     {
+        Guard.NotNull(component, nameof(component));
         component.Compose(this);
         return this;
     }
@@ -200,30 +224,31 @@ internal sealed class ImageDescriptor : IImageDescriptor
 
     public IImageDescriptor Width(float points)
     {
-        _image.Width = points;
+        _image.Width = Guard.PositiveFinite(points, nameof(points));
         return this;
     }
 
     public IImageDescriptor Height(float points)
     {
-        _image.Height = points;
+        _image.Height = Guard.PositiveFinite(points, nameof(points));
         return this;
     }
 
     public IImageDescriptor MaxWidth(float points)
     {
-        _image.MaxWidth = points;
+        _image.MaxWidth = Guard.PositiveFinite(points, nameof(points));
         return this;
     }
 
     public IImageDescriptor AltText(string text)
     {
-        _image.AltText = text;
+        _image.AltText = Guard.NotNull(text, nameof(text));
         return this;
     }
 
     public IImageDescriptor Caption(string text, Action<ITextDescriptor>? configure = null)
     {
+        Guard.NotNull(text, nameof(text));
         var descriptor = new TextDescriptor(text, _theme);
         descriptor.AlignCenter().FontSize(9).FontColor(Colors.Grey.L600).SpacingBefore(2).SpacingAfter(4);
         configure?.Invoke(descriptor);
@@ -287,6 +312,8 @@ internal sealed class ImageDescriptor : IImageDescriptor
 
     public IImageDescriptor Position(float xPoints, float yPoints)
     {
+        Guard.NonNegativeFinite(xPoints, nameof(xPoints));
+        Guard.NonNegativeFinite(yPoints, nameof(yPoints));
         _image.WrapMode = _image.WrapMode == "inline" ? "square" : _image.WrapMode;
         _image.HorizontalRelativeFrom = "margin";
         _image.VerticalRelativeFrom = "paragraph";
@@ -310,16 +337,16 @@ internal sealed class ImageDescriptor : IImageDescriptor
 
     public IImageDescriptor Margin(float topPoints, float rightPoints, float bottomPoints, float leftPoints)
     {
-        _image.MarginTop = Math.Max(0, topPoints);
-        _image.MarginRight = Math.Max(0, rightPoints);
-        _image.MarginBottom = Math.Max(0, bottomPoints);
-        _image.MarginLeft = Math.Max(0, leftPoints);
+        _image.MarginTop = Guard.NonNegativeFinite(topPoints, nameof(topPoints));
+        _image.MarginRight = Guard.NonNegativeFinite(rightPoints, nameof(rightPoints));
+        _image.MarginBottom = Guard.NonNegativeFinite(bottomPoints, nameof(bottomPoints));
+        _image.MarginLeft = Guard.NonNegativeFinite(leftPoints, nameof(leftPoints));
         return this;
     }
 
     public IImageDescriptor Border(float widthPoints = 1f, string hexColor = "000000")
     {
-        _image.BorderWidth = Math.Max(0, widthPoints);
+        _image.BorderWidth = Guard.NonNegativeFinite(widthPoints, nameof(widthPoints));
         _image.BorderColor = HexColor.Validate(hexColor, nameof(hexColor));
         return this;
     }
@@ -332,6 +359,10 @@ internal sealed class ImageDescriptor : IImageDescriptor
 
     public IImageDescriptor Crop(float leftPercent, float topPercent, float rightPercent, float bottomPercent)
     {
+        Guard.NonNegativeFinite(leftPercent, nameof(leftPercent));
+        Guard.NonNegativeFinite(topPercent, nameof(topPercent));
+        Guard.NonNegativeFinite(rightPercent, nameof(rightPercent));
+        Guard.NonNegativeFinite(bottomPercent, nameof(bottomPercent));
         _image.CropLeftPercent = NormalizePercent(leftPercent);
         _image.CropTopPercent = NormalizePercent(topPercent);
         _image.CropRightPercent = NormalizePercent(rightPercent);
@@ -341,6 +372,7 @@ internal sealed class ImageDescriptor : IImageDescriptor
 
     private IImageDescriptor Wrap(string mode, float marginPoints)
     {
+        Guard.NonNegativeFinite(marginPoints, nameof(marginPoints));
         _image.WrapMode = mode;
         Margin(marginPoints);
         return this;
@@ -348,6 +380,7 @@ internal sealed class ImageDescriptor : IImageDescriptor
 
     private IImageDescriptor Float(string alignment, float marginPoints)
     {
+        Guard.NonNegativeFinite(marginPoints, nameof(marginPoints));
         _image.WrapMode = _image.WrapMode == "inline" ? "square" : _image.WrapMode;
         _image.HorizontalRelativeFrom = "margin";
         _image.VerticalRelativeFrom = "paragraph";

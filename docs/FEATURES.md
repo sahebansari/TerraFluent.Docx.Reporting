@@ -90,6 +90,12 @@ page.Content().Text(text =>
     text.CrossReference("revenue-section", "the revenue section");
     text.Span(" for details.");
 });
+```
+
+`H1` through `H6` don't accept a bookmark name directly. To bookmark a heading, use `Bookmark` with `Style` instead of `H1`-`H6`:
+
+```csharp
+page.Content().Bookmark("operations-section", "Operations", text => text.Style("Heading1"));
 
 page.Content().Text(text =>
 {

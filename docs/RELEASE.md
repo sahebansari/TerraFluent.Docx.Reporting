@@ -16,6 +16,7 @@ Before publishing, make sure:
 - `CHANGELOG.md` has an entry for the version.
 - `LICENSE.txt` contains the MIT license and current copyright holder.
 - The package metadata in the project file has a real project/repository URL.
+- The solution builds with warnings treated as errors.
 - The NuGet API key is stored as the `NUGET_API_KEY` repository secret if publishing from GitHub Actions.
 
 ## Local Release Build
@@ -41,8 +42,7 @@ The package should include:
 - `README.md`
 - `CHANGELOG.md`
 - `LICENSE.txt`
-- `docs/README.md`
-- `docs/API.md`
+- `docs/*.md` (every file in the `docs` folder, including `README.md`, `API.md`, `GETTING_STARTED.md`, `CORE_CONCEPTS.md`, `FEATURES.md`, `SAMPLES.md`, `TROUBLESHOOTING.md`, and `RELEASE.md`)
 
 Confirm the package metadata:
 
@@ -53,7 +53,9 @@ Confirm the package metadata:
 
 ## Compatibility Smoke Checks
 
-The automated test suite validates generated DOCX packages with the Open XML SDK. Application-level compatibility should also be checked before a release:
+The automated test suite validates generated DOCX packages with the Open XML SDK. CI also builds on Windows and Linux, runs the sample project, performs a packed-package consumption smoke test, and converts sample documents with LibreOffice on Linux.
+
+Application-level compatibility should also be checked before a release:
 
 ```powershell
 dotnet run --project samples\TerraFluent.Docx.Reporting.Sample\TerraFluent.Docx.Reporting.Sample.csproj

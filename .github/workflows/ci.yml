@@ -23,8 +23,15 @@ permissions:
   contents: read
 
 jobs:
-  build-test-pack:
-    runs-on: windows-latest
+  build-test:
+    name: Build and test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-latest
 
     steps:
       - name: Checkout
@@ -44,8 +51,80 @@ jobs:
       - name: Test
         run: dotnet test TerraFluent.Docx.Reporting.sln --configuration Release --no-build
 
+      - name: Run sample documents
+        run: dotnet run --project samples/TerraFluent.Docx.Reporting.Sample/TerraFluent.Docx.Reporting.Sample.csproj --configuration Release --no-build
+
+      - name: Install LibreOffice
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libreoffice-writer
+
+      - name: LibreOffice conversion smoke
+        if: runner.os == 'Linux'
+        shell: pwsh
+        run: |
+          $sampleDocs = Join-Path $HOME 'Desktop/SampleDocs'
+          $out = Join-Path $env:RUNNER_TEMP 'terrafluent-pdf-smoke'
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          $docs = Get-ChildItem $sampleDocs -Filter '*.docx'
+          if ($docs.Count -eq 0) {
+            throw "No sample DOCX files were generated in $sampleDocs."
+          }
+          foreach ($doc in $docs) {
+            & libreoffice --headless --convert-to pdf --outdir $out $doc.FullName
+            if ($LASTEXITCODE -ne 0) {
+              throw "LibreOffice failed to convert $($doc.FullName)."
+            }
+          }
+
+  pack:
+    name: Pack and publish
+    runs-on: windows-latest
+    needs: build-test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore TerraFluent.Docx.Reporting.sln
+
+      - name: Build
+        run: dotnet build TerraFluent.Docx.Reporting.sln --configuration Release --no-restore
+
       - name: Pack
         run: dotnet pack src\TerraFluent.Docx.Reporting\TerraFluent.Docx.Reporting.csproj --configuration Release --no-build --output artifacts\nuget
+
+      - name: Package consumption smoke
+        shell: pwsh
+        run: |
+          $smoke = Join-Path $env:RUNNER_TEMP 'TerraFluent.PackageSmoke'
+          dotnet new console --framework net10.0 --output $smoke
+          $project = Join-Path $smoke 'TerraFluent.PackageSmoke.csproj'
+          dotnet add $project package TerraFluent.Docx.Reporting --source (Resolve-Path artifacts\nuget)
+          $program = @(
+            'using TerraFluent.Docx.Reporting;',
+            '',
+            'var bytes = Document.Create(doc =>',
+            '{',
+            '    doc.Page(page =>',
+            '    {',
+            '        page.Size(PageSize.A4);',
+            '        page.Content().Text("Package smoke");',
+            '    });',
+            '}).PublishDocx();',
+            '',
+            'if (bytes.Length == 0)',
+            '    throw new InvalidOperationException("Generated DOCX package was empty.");'
+          )
+          Set-Content -Path (Join-Path $smoke 'Program.cs') -Value $program
+          dotnet run --project $project --configuration Release
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
@@ -65,4 +144,3 @@ jobs:
           }
           dotnet nuget push artifacts\nuget\*.nupkg --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
           dotnet nuget push artifacts\nuget\*.snupkg --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
-

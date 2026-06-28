@@ -72,8 +72,9 @@ internal sealed class BodyBuilder
 
         WriteParagraphBorders(text, pPr);
 
-        if (!string.IsNullOrWhiteSpace(text.ShadingColor))
-            pPr.Append($"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"{text.ShadingColor.TrimStart('#')}\"/>");
+        var shadingColor = text.ShadingColor;
+        if (!string.IsNullOrWhiteSpace(shadingColor))
+            pPr.Append($"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"{shadingColor!.TrimStart('#')}\"/>");
 
         if (text.TabStops.Count > 0)
         {
@@ -139,10 +140,11 @@ internal sealed class BodyBuilder
         }
 
         var bookmarkId = -1;
-        if (!string.IsNullOrWhiteSpace(text.BookmarkName))
+        var bookmarkName = text.BookmarkName;
+        if (!string.IsNullOrWhiteSpace(bookmarkName))
         {
             bookmarkId = _ctx.NextBookmarkId();
-            _sb.Append($"<w:bookmarkStart w:id=\"{bookmarkId}\" w:name=\"{TextDescriptor.BookmarkName(text.BookmarkName)}\"/>");
+            _sb.Append($"<w:bookmarkStart w:id=\"{bookmarkId}\" w:name=\"{TextDescriptor.BookmarkName(bookmarkName!)}\"/>");
         }
 
         var paragraphDefaultRun = text.Runs.Count > 0 ? text.Runs[0] : null;
@@ -196,10 +198,11 @@ internal sealed class BodyBuilder
 
     private void WriteHyperlinkRun(TextRun run, string rPr)
     {
-        if (string.IsNullOrWhiteSpace(run.Url))
+        var url = run.Url;
+        if (string.IsNullOrWhiteSpace(url))
             return;
 
-        var rId = _relationships.AddHyperlink(run.Url);
+        var rId = _relationships.AddHyperlink(url!);
         _sb.Append($"<w:hyperlink r:id=\"{rId}\" w:history=\"1\"><w:r>");
         _sb.Append(rPr);
         _sb.Append($"<w:t xml:space=\"preserve\">{OoxmlWriter.Escape(run.Text)}</w:t>");
@@ -454,7 +457,7 @@ internal sealed class BodyBuilder
             if (cell.VerticalMerge != null)
                 _sb.Append(cell.VerticalMerge == "restart" ? "<w:vMerge w:val=\"restart\"/>" : "<w:vMerge/>");
             WriteCellBorders(cell);
-            if (!string.IsNullOrWhiteSpace(fill))
+            if (fill is not null && !string.IsNullOrWhiteSpace(fill))
                 _sb.Append($"<w:shd w:val=\"clear\" w:color=\"auto\" w:fill=\"{fill.TrimStart('#')}\"/>");
             if (HasCellPaddingOverride(cell))
             {
@@ -550,10 +553,7 @@ internal sealed class BodyBuilder
     private void WriteImage(ImageElement img)
     {
         if (!ImageExists(img))
-        {
-            _sb.AppendLine($"<w:p><w:r><w:t>[Missing image: {OoxmlWriter.Escape(img.FilePath ?? img.FileName)}]</w:t></w:r></w:p>");
-            return;
-        }
+            throw new FileNotFoundException("Image file could not be found or image bytes were empty.", img.FilePath ?? img.FileName);
 
         string rId = _relationships.AddImage(img);
         int docPrId = _ctx.NextDocPrId();

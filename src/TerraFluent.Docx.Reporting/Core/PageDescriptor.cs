@@ -54,19 +54,35 @@ internal sealed class PageDescriptor : IPageDescriptor
         DefaultTextStyle = descriptor.Element;
     }
 
-    IPageDescriptor IPageDescriptor.Size(PageSize size)               { Size = size; return this; }
-    IPageDescriptor IPageDescriptor.Size(float w, float h)            { Size = new PageSize(w, h); return this; }
+    IPageDescriptor IPageDescriptor.Size(PageSize size)
+    {
+        Size = new PageSize(
+            Guard.PositiveFinite(size.Width, nameof(size.Width)),
+            Guard.PositiveFinite(size.Height, nameof(size.Height)));
+        return this;
+    }
+
+    IPageDescriptor IPageDescriptor.Size(float w, float h)
+    {
+        Size = new PageSize(
+            Guard.PositiveFinite(w, nameof(w)),
+            Guard.PositiveFinite(h, nameof(h)));
+        return this;
+    }
     IPageDescriptor IPageDescriptor.Landscape()                       { Size = Size.Landscape(); return this; }
     IPageDescriptor IPageDescriptor.Portrait()                        { Size = new PageSize(Math.Min(Size.Width, Size.Height), Math.Max(Size.Width, Size.Height)); return this; }
 
     IPageDescriptor IPageDescriptor.Margin(float all)
     {
+        Guard.NonNegativeFinite(all, nameof(all));
         MarginTop = MarginRight = MarginBottom = MarginLeft = all;
         return this;
     }
 
     IPageDescriptor IPageDescriptor.Margin(float v, float h)
     {
+        Guard.NonNegativeFinite(v, nameof(v));
+        Guard.NonNegativeFinite(h, nameof(h));
         MarginTop = MarginBottom = v;
         MarginRight = MarginLeft = h;
         return this;
@@ -74,18 +90,23 @@ internal sealed class PageDescriptor : IPageDescriptor
 
     IPageDescriptor IPageDescriptor.Margin(float top, float right, float bottom, float left)
     {
+        Guard.NonNegativeFinite(top, nameof(top));
+        Guard.NonNegativeFinite(right, nameof(right));
+        Guard.NonNegativeFinite(bottom, nameof(bottom));
+        Guard.NonNegativeFinite(left, nameof(left));
         MarginTop = top; MarginRight = right; MarginBottom = bottom; MarginLeft = left;
         return this;
     }
 
-    IPageDescriptor IPageDescriptor.MarginTop(float p)    { MarginTop = p; return this; }
-    IPageDescriptor IPageDescriptor.MarginRight(float p)  { MarginRight = p; return this; }
-    IPageDescriptor IPageDescriptor.MarginBottom(float p) { MarginBottom = p; return this; }
-    IPageDescriptor IPageDescriptor.MarginLeft(float p)   { MarginLeft = p; return this; }
+    IPageDescriptor IPageDescriptor.MarginTop(float p)    { MarginTop = Guard.NonNegativeFinite(p, nameof(p)); return this; }
+    IPageDescriptor IPageDescriptor.MarginRight(float p)  { MarginRight = Guard.NonNegativeFinite(p, nameof(p)); return this; }
+    IPageDescriptor IPageDescriptor.MarginBottom(float p) { MarginBottom = Guard.NonNegativeFinite(p, nameof(p)); return this; }
+    IPageDescriptor IPageDescriptor.MarginLeft(float p)   { MarginLeft = Guard.NonNegativeFinite(p, nameof(p)); return this; }
 
     IPageDescriptor IPageDescriptor.DefaultTextStyle(Action<ITextDescriptor> configure)
     {
         var descriptor = new TextDescriptor(string.Empty, _theme);
+        Guard.NotNull(configure, nameof(configure));
         configure(descriptor);
         DefaultTextStyle = descriptor.Element;
         return this;
@@ -93,13 +114,13 @@ internal sealed class PageDescriptor : IPageDescriptor
 
     IPageDescriptor IPageDescriptor.PageNumberStart(int value)
     {
-        PageNumberStartValue = Math.Max(1, value);
+        PageNumberStartValue = Guard.InRange(value, 1, int.MaxValue, nameof(value));
         return this;
     }
 
     IPageDescriptor IPageDescriptor.PageNumberFormat(string format)
     {
-        PageNumberFormat = format;
+        PageNumberFormat = Guard.NotWhiteSpace(format, nameof(format));
         return this;
     }
 
@@ -111,16 +132,16 @@ internal sealed class PageDescriptor : IPageDescriptor
 
     IPageDescriptor IPageDescriptor.Watermark(string text, string hexColor, float fontSize)
     {
-        WatermarkText = text;
+        WatermarkText = Guard.NotWhiteSpace(text, nameof(text));
         WatermarkColor = HexColor.Validate(hexColor, nameof(hexColor));
-        WatermarkFontSize = fontSize;
+        WatermarkFontSize = Guard.PositiveFinite(fontSize, nameof(fontSize));
         return this;
     }
 
     IPageDescriptor IPageDescriptor.Columns(int count, float spacingPoints, bool separatorLine)
     {
-        ColumnCount = MathCompat.Clamp(count, 1, 45);
-        ColumnSpacing = Math.Max(0, spacingPoints);
+        ColumnCount = Guard.InRange(count, 1, 45, nameof(count));
+        ColumnSpacing = Guard.NonNegativeFinite(spacingPoints, nameof(spacingPoints));
         ColumnSeparatorLine = separatorLine;
         return this;
     }

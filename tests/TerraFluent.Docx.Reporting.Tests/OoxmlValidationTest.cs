@@ -3,6 +3,8 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Validation;
 using System.Globalization;
 using System.IO.Compression;
+using System.Text;
+using System.Xml.Linq;
 using TerraFluent.Docx.Reporting;
 using TerraFluent.Docx.Reporting.Infra;
 
@@ -1982,6 +1984,123 @@ public class OoxmlValidationTest
         }
     }
 
+    [Fact]
+    public void DocxTemplate_ReplacesSplitRunPlaceholdersWithoutBareKeyReplacement()
+    {
+        var templateBytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Content().Text(t =>
+                {
+                    t.Span("Hello {{Na");
+                    t.Span("me}} and Name.");
+                });
+            });
+        }).PublishDocx();
+
+        var templatePath = Path.Combine(Path.GetTempPath(), $"template-{Guid.NewGuid():N}.docx");
+        var outputPath = Path.Combine(Path.GetTempPath(), $"template-output-{Guid.NewGuid():N}.docx");
+        File.WriteAllBytes(templatePath, templateBytes);
+
+        try
+        {
+            DocxTemplate.Open(templatePath)
+                .Replace("Name", "Ada Lovelace")
+                .SaveAs(outputPath);
+
+            var bytes = File.ReadAllBytes(outputPath);
+            Assert.Empty(Validate(bytes));
+            var documentText = PlainText(ReadZipEntry(bytes, "word/document.xml"));
+            Assert.Contains("Hello Ada Lovelace and Name.", documentText);
+            Assert.DoesNotContain("{{Name}}", documentText);
+        }
+        finally
+        {
+            File.Delete(templatePath);
+            File.Delete(outputPath);
+        }
+    }
+
+    [Fact]
+    public void DocxTemplate_ReplacesTaggedContentControl()
+    {
+        XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+        var baseBytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Content().Text("Old Customer");
+            });
+        }).PublishDocx();
+
+        var templateBytes = RewriteZipEntry(baseBytes, "word/document.xml", xml =>
+        {
+            var doc = XDocument.Parse(xml, LoadOptions.PreserveWhitespace);
+            var paragraph = doc.Descendants(w + "p").First();
+            paragraph.ReplaceNodes(
+                new XElement(w + "sdt",
+                    new XElement(w + "sdtPr",
+                        new XElement(w + "tag", new XAttribute(w + "val", "CustomerName"))),
+                    new XElement(w + "sdtContent",
+                        new XElement(w + "r",
+                            new XElement(w + "t", "Old Customer")))));
+            return doc.ToString(SaveOptions.DisableFormatting);
+        });
+
+        var templatePath = Path.Combine(Path.GetTempPath(), $"template-{Guid.NewGuid():N}.docx");
+        var outputPath = Path.Combine(Path.GetTempPath(), $"template-output-{Guid.NewGuid():N}.docx");
+        File.WriteAllBytes(templatePath, templateBytes);
+
+        try
+        {
+            DocxTemplate.Open(templatePath)
+                .ReplaceContentControl("CustomerName", "Ada & Co")
+                .SaveAs(outputPath);
+
+            var bytes = File.ReadAllBytes(outputPath);
+            Assert.Empty(Validate(bytes));
+            var documentText = PlainText(ReadZipEntry(bytes, "word/document.xml"));
+            Assert.Contains("Ada & Co", documentText);
+            Assert.DoesNotContain("Old Customer", documentText);
+        }
+        finally
+        {
+            File.Delete(templatePath);
+            File.Delete(outputPath);
+        }
+    }
+
+    [Fact]
+    public void PublicApis_InvalidInputsThrowClearExceptions()
+    {
+        Assert.Throws<ArgumentNullException>(() => Document.Create(null!));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Document.Create(c =>
+            c.Page(p => p.Size(-1, PageSize.A4.Height))));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Document.Create(c =>
+            c.Page(p => p.Margin(-1))));
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Document.Create(c =>
+            c.Page(p => p.Columns(0))));
+
+        Assert.Throws<ArgumentException>(() => Document.Create(c =>
+            c.Page(p => p.Content().Image(Array.Empty<byte>(), "empty.png"))));
+
+        var missingImage = Path.Combine(Path.GetTempPath(), $"missing-{Guid.NewGuid():N}.png");
+        Assert.Throws<FileNotFoundException>(() => Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Content().Image(missingImage);
+            });
+        }).PublishDocx());
+    }
+
     private static byte[] CreateMinimalPng(int width, int height)
     {
         // Minimal valid PNG: signature + IHDR + IDAT (1px red) + IEND
@@ -2069,6 +2188,42 @@ public class OoxmlValidationTest
         var entry = archive.GetEntry(path) ?? throw new FileNotFoundException(path);
         using var reader = new StreamReader(entry.Open());
         return reader.ReadToEnd();
+    }
+
+    private static byte[] RewriteZipEntry(byte[] bytes, string path, Func<string, string> rewrite)
+    {
+        using var sourceStream = new MemoryStream(bytes);
+        using var source = new ZipArchive(sourceStream, ZipArchiveMode.Read);
+        using var outputStream = new MemoryStream();
+        using (var output = new ZipArchive(outputStream, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            foreach (var entry in source.Entries)
+            {
+                var newEntry = output.CreateEntry(entry.FullName, CompressionLevel.Optimal);
+                using var entryStream = entry.Open();
+                using var newEntryStream = newEntry.Open();
+
+                if (entry.FullName.Equals(path, StringComparison.OrdinalIgnoreCase))
+                {
+                    using var reader = new StreamReader(entryStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                    using var writer = new StreamWriter(newEntryStream, new UTF8Encoding(false));
+                    writer.Write(rewrite(reader.ReadToEnd()));
+                }
+                else
+                {
+                    entryStream.CopyTo(newEntryStream);
+                }
+            }
+        }
+
+        return outputStream.ToArray();
+    }
+
+    private static string PlainText(string xml)
+    {
+        XNamespace w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
+        var document = XDocument.Parse(xml);
+        return string.Concat(document.Descendants(w + "t").Select(t => t.Value));
     }
 
     private static int CountOccurrences(string text, string value)

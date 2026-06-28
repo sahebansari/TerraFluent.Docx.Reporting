@@ -1,24 +1,45 @@
 namespace TerraFluent.Docx.Reporting;
 
+/// <summary>
+/// The shared font, color, and table-layout defaults for a document. Construct one directly to
+/// reuse across documents, or configure it inline via
+/// <see cref="Infra.IDocumentContainer.Theme(Action{Infra.IDocumentThemeDescriptor})"/>.
+/// </summary>
 public sealed class DocumentTheme
 {
+    /// <summary>The default font family for document text.</summary>
     public string DefaultFontFamily { get; set; } = "Calibri";
+    /// <summary>The default font size, in points, for document text.</summary>
     public float DefaultFontSize { get; set; } = 11;
+    /// <summary>The default body text color.</summary>
     public string DefaultTextColor { get; set; } = Colors.Grey.L900;
+    /// <summary>The color used for H1-H6 headings.</summary>
     public string HeadingColor { get; set; } = Colors.Grey.L900;
+    /// <summary>The document's accent color, used as a default for heading and table header colors.</summary>
     public string AccentColor { get; set; } = Colors.Blue.L700;
+    /// <summary>The color used for hyperlink runs that don't override their own font color.</summary>
     public string HyperlinkColor { get; set; } = Colors.Blue.L700;
+    /// <summary>The default table border line width, in points.</summary>
     public float TableBorderWidth { get; set; }
+    /// <summary>The default table border color.</summary>
     public string TableBorderColor { get; set; } = Colors.Grey.L300;
+    /// <summary>The default table cell padding, in points, on the top and bottom sides.</summary>
     public float TableCellPaddingVertical { get; set; } = 3;
+    /// <summary>The default table cell padding, in points, on the left and right sides.</summary>
     public float TableCellPaddingHorizontal { get; set; } = 5;
+    /// <summary>The default background fill color for table header rows, or <see langword="null"/> for no fill.</summary>
     public string? TableHeaderBackgroundColor { get; set; }
+    /// <summary>The default background fill color for alternating table body rows, or <see langword="null"/> for no banding.</summary>
     public string? TableAlternateRowBackgroundColor { get; set; }
+    /// <summary>The default minimum height, in points, for table body rows.</summary>
     public float TableRowMinHeight { get; set; }
+    /// <summary>The default minimum height, in points, for table header rows.</summary>
     public float TableHeaderRowMinHeight { get; set; }
 
+    /// <summary>Creates a new theme with default values.</summary>
     public static DocumentTheme Default => new();
 
+    /// <summary>Creates an independent copy of this theme.</summary>
     public DocumentTheme Clone() => new()
     {
         DefaultFontFamily = DefaultFontFamily,

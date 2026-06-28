@@ -1,5 +1,9 @@
 namespace TerraFluent.Docx.Reporting.Infra;
 
+/// <summary>
+/// Configures a chart added via <see cref="IContainer.Chart"/>: its title and data series. Charts
+/// render as native Word chart parts, editable in Word like any chart it creates itself.
+/// </summary>
 public interface IChartDescriptor
 {
     /// <summary>

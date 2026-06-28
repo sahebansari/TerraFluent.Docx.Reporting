@@ -24,6 +24,7 @@ public sealed class Document
     public static Document Create(Action<IDocumentContainer> configure)
     {
         var container = new DocumentContainerDescriptor();
+        Guard.NotNull(configure, nameof(configure));
         configure(container);
         return new Document(container);
     }
@@ -34,6 +35,7 @@ public sealed class Document
     /// <param name="filePath">Destination `.docx` file path.</param>
     public void PublishDocx(string filePath)
     {
+        Guard.NotWhiteSpace(filePath, nameof(filePath));
         using var stream = File.Create(filePath);
         PublishDocx(stream);
     }
@@ -55,6 +57,10 @@ public sealed class Document
     /// <param name="stream">Destination stream. The stream remains open after writing.</param>
     public void PublishDocx(Stream stream)
     {
+        Guard.NotNull(stream, nameof(stream));
+        if (!stream.CanWrite)
+            throw new ArgumentException("Destination stream must be writable.", nameof(stream));
+
         OoxmlWriter.Write(_container, stream);
     }
 }

@@ -4,6 +4,12 @@
 
 This page lists the public fluent API exposed by `TerraFluent.Docx.Reporting`.
 
+## Public API Contract
+
+TerraFluent.Docx.Reporting validates public inputs before writing packages. Null callbacks, empty paths or names, negative sizes or margins, unreadable streams, missing image files, and empty image byte arrays throw standard .NET exceptions such as `ArgumentException`, `ArgumentOutOfRangeException`, `ArgumentNullException`, or `FileNotFoundException`.
+
+The fluent API clamps only where the Open XML concept is naturally bounded and documented by the API. Otherwise invalid input fails fast so production callers can catch configuration mistakes before distributing a damaged document.
+
 ## Namespace
 
 ```csharp
@@ -223,6 +229,8 @@ Cell APIs:
 
 ## Images
 
+Image paths are resolved when the document is published. A missing image path or empty image byte array throws instead of emitting placeholder text into the document.
+
 | API | Purpose |
 | --- | --- |
 | `Width`, `Height`, `MaxWidth` | Controls size in points. |
@@ -273,6 +281,8 @@ Column APIs:
 
 ## Templates
 
+Template placeholder replacement is scoped to Word text nodes and supports placeholders split across multiple runs, as Word often stores formatted text. `Replace("Name", value)` targets `{{Name}}`; bare occurrences of `Name` are not replaced. Use content controls when you need strongly scoped replacements in authored Word templates.
+
 | API | Purpose |
 | --- | --- |
 | `DocxTemplate.Open(string templatePath)` | Opens a `.docx` template. |
@@ -308,4 +318,3 @@ Use `new PageSize(widthPoints, heightPoints)` for custom sizes and `PageSize.A4.
 | --- | --- |
 | `HighlightColor` | `Yellow`, `Green`, `Cyan`, `Magenta`, `Blue`, `Red`, `DarkBlue`, `DarkCyan`, `DarkGreen`, `DarkMagenta`, `DarkRed`, `DarkYellow`, `DarkGray`, `LightGray`, `Black`, `White`, `None` |
 | `TabStopAlignment` | `Left`, `Center`, `Right`, `Decimal` |
-
