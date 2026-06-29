@@ -30,7 +30,7 @@ public class ReleasePolishTest
 
         var packedFiles = project.Root.Elements("ItemGroup").Elements("None")
             .Where(e => string.Equals(e.Attribute("Pack")?.Value, "true", StringComparison.OrdinalIgnoreCase))
-            .Select(e => Path.GetFileName(e.Attribute("Include")?.Value))
+            .Select(e => GetMsBuildFileName(e.Attribute("Include")?.Value))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         Assert.Contains("README.md", packedFiles);
@@ -94,5 +94,10 @@ public class ReleasePolishTest
             directory = directory.Parent;
 
         return directory?.FullName ?? throw new DirectoryNotFoundException("Could not find TerraFluent.Docx.Reporting.sln.");
+    }
+
+    private static string? GetMsBuildFileName(string? path)
+    {
+        return path?.Split('\\', '/').LastOrDefault();
     }
 }
