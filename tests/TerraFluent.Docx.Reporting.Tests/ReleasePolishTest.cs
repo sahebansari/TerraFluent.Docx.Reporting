@@ -75,6 +75,9 @@ public class ReleasePolishTest
         Assert.Contains("dotnet test TerraFluent.Docx.Reporting.sln", workflow);
         Assert.Contains("dotnet pack src\\TerraFluent.Docx.Reporting\\TerraFluent.Docx.Reporting.csproj", workflow);
         Assert.Contains("NuGet/login@v1", workflow);
+        Assert.Contains("refs/heads/main", workflow);
+        Assert.Contains("refs/heads/master", workflow);
+        Assert.Contains("refs/tags/v", workflow);
         Assert.Contains("id-token: write", workflow);
         Assert.Contains("environment: release", workflow);
         Assert.Contains("secrets.NUGET_USER", workflow);

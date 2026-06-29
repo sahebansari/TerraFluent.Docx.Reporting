@@ -81,7 +81,7 @@ Each release should include:
 
 ## Publish
 
-Publishing can be done from GitHub Actions by pushing a version tag such as `v1.2.1`, or by running the `CI` workflow manually with `publish=true`.
+Publishing can be done from GitHub Actions by pushing to `main` or `master`, pushing a version tag such as `v1.2.1`, or by running the `CI` workflow manually with `publish=true`.
 
 GitHub Actions publishing uses nuget.org Trusted Publishing instead of a long-lived API key. Configure the nuget.org Trusted Publishing policy for:
 
