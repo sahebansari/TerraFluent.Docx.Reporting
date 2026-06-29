@@ -61,7 +61,8 @@ public class ReleasePolishTest
         Assert.Contains("Sample Files", File.ReadAllText(Path.Combine(root, "docs", "SAMPLES.md")));
         Assert.Contains("Word Shows A Repair Prompt", File.ReadAllText(Path.Combine(root, "docs", "TROUBLESHOOTING.md")));
         Assert.Contains("semantic versioning", File.ReadAllText(Path.Combine(root, "docs", "RELEASE.md")));
-        Assert.Contains("NUGET_API_KEY", File.ReadAllText(Path.Combine(root, "docs", "RELEASE.md")));
+        Assert.Contains("Trusted Publishing", File.ReadAllText(Path.Combine(root, "docs", "RELEASE.md")));
+        Assert.Contains("NUGET_USER", File.ReadAllText(Path.Combine(root, "docs", "RELEASE.md")));
         Assert.Contains("Open and save the sample documents in Microsoft Word", File.ReadAllText(Path.Combine(root, "docs", "RELEASE.md")));
     }
 
@@ -73,8 +74,11 @@ public class ReleasePolishTest
 
         Assert.Contains("dotnet test TerraFluent.Docx.Reporting.sln", workflow);
         Assert.Contains("dotnet pack src\\TerraFluent.Docx.Reporting\\TerraFluent.Docx.Reporting.csproj", workflow);
-        Assert.Contains("dotnet nuget push artifacts\\nuget\\*.nupkg", workflow);
-        Assert.Contains("NUGET_API_KEY", workflow);
+        Assert.Contains("NuGet/login@v1", workflow);
+        Assert.Contains("id-token: write", workflow);
+        Assert.Contains("environment: release", workflow);
+        Assert.Contains("secrets.NUGET_USER", workflow);
+        Assert.DoesNotContain("secrets.NUGET_API_KEY", workflow);
     }
 
     [Fact]

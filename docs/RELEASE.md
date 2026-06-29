@@ -17,7 +17,8 @@ Before publishing, make sure:
 - `LICENSE.txt` contains the MIT license and current copyright holder.
 - The package metadata in the project file has a real project/repository URL.
 - The solution builds with warnings treated as errors.
-- The NuGet API key is stored as the `NUGET_API_KEY` repository secret if publishing from GitHub Actions.
+- A nuget.org Trusted Publishing policy exists for the GitHub Actions release environment.
+- The GitHub repository has a `NUGET_USER` secret containing the nuget.org username for Trusted Publishing.
 
 ## Local Release Build
 
@@ -81,6 +82,13 @@ Each release should include:
 ## Publish
 
 Publishing can be done from GitHub Actions by pushing a version tag such as `v1.2.1`, or by running the `CI` workflow manually with `publish=true`.
+
+GitHub Actions publishing uses nuget.org Trusted Publishing instead of a long-lived API key. Configure the nuget.org Trusted Publishing policy for:
+
+- Repository owner: `sahebansari`
+- Repository: `TerraFluent.Docx.Reporting`
+- Workflow: `ci.yml`
+- Environment: `release`
 
 To publish locally, pack first and then push:
 
