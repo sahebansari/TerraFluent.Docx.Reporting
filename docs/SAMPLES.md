@@ -14,7 +14,8 @@ dotnet run --project samples\TerraFluent.Docx.Reporting.Sample\TerraFluent.Docx.
 
 | Sample | Source | Demonstrates |
 | --- | --- | --- |
-| Feature showcase | [FeatureShowcaseSample.cs](../samples/TerraFluent.Docx.Reporting.Sample/FeatureShowcaseSample.cs) | Headings, text, headers, footers, images, hyperlinks, and general document structure. |
+| Feature showcase | [FeatureShowcaseSample.cs](../samples/TerraFluent.Docx.Reporting.Sample/FeatureShowcaseSample.cs) | Headings, text, headers, footers, images, barcodes, hyperlinks, and general document structure. |
+| Barcode showcase | [BarcodeShowcaseSample.cs](../samples/TerraFluent.Docx.Reporting.Sample/BarcodeShowcaseSample.cs) | Shipping manifest with barcodes in a header, a table column, and standalone printable labels. |
 | Invoice | [InvoiceSample.cs](../samples/TerraFluent.Docx.Reporting.Sample/InvoiceSample.cs) | Invoice layout, branding, totals, and tables. |
 | Long invoice | [LongInvoiceSample.cs](../samples/TerraFluent.Docx.Reporting.Sample/LongInvoiceSample.cs) | Multi-page invoice behavior and repeated tabular content. |
 | Annual report | [AnnualReportSample.cs](../samples/TerraFluent.Docx.Reporting.Sample/AnnualReportSample.cs) | Realistic business report with sections, images, tables, and rich formatting. |

@@ -7,6 +7,7 @@ SampleImage.CreateGradientPng(imagePath, 64, 64);
 var documents = new[]
 {
     FeatureShowcaseSample.Generate(outputDirectory, imagePath),
+    BarcodeShowcaseSample.Generate(outputDirectory, logoPath),
     InvoiceSample.Generate(outputDirectory, logoPath),
     LongInvoiceSample.Generate(outputDirectory, logoPath),
     AnnualReportSample.Generate(outputDirectory, logoPath, imagePath),

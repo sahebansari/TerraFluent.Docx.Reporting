@@ -4,6 +4,11 @@ All notable changes to TerraFluent.Docx.Reporting are documented here.
 
 This project follows semantic versioning. Public releases are distributed as a free MIT-licensed NuGet package.
 
+## 1.2.2
+
+- Added `IContainer.Barcode(...)` for Code 128 barcodes, rendered as vector DrawingML shapes (no raster image or media part), usable anywhere an image can go: page body, headers, footers, columns, rows, and table cells. Supports sizing, bar color, alignment, an optional human-readable text line, and captions.
+- Added a package icon to the NuGet package.
+
 ## 1.2.1
 
 - Reworked DOCX template replacement to use structured WordprocessingML text traversal, including placeholders split across Word runs and tagged content controls.

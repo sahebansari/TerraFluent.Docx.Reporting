@@ -6,7 +6,7 @@ This page lists the public fluent API exposed by `TerraFluent.Docx.Reporting`.
 
 ## Public API Contract
 
-TerraFluent.Docx.Reporting validates public inputs before writing packages. Null callbacks, empty paths or names, negative sizes or margins, unreadable streams, missing image files, and empty image byte arrays throw standard .NET exceptions such as `ArgumentException`, `ArgumentOutOfRangeException`, `ArgumentNullException`, or `FileNotFoundException`.
+TerraFluent.Docx.Reporting validates public inputs before writing packages. Null callbacks, empty paths or names, negative sizes or margins, unreadable streams, missing image files, empty image byte arrays, and barcode values outside ASCII 32-126 throw standard .NET exceptions such as `ArgumentException`, `ArgumentOutOfRangeException`, `ArgumentNullException`, or `FileNotFoundException`.
 
 The fluent API clamps only where the Open XML concept is naturally bounded and documented by the API. Otherwise invalid input fails fast so production callers can catch configuration mistakes before distributing a damaged document.
 
@@ -145,6 +145,7 @@ doc.Page(page =>
 | `Table` | Adds a table. |
 | `Chart` | Adds a chart. |
 | `Image` overloads | Adds an image from path, bytes, or stream. |
+| `Barcode(string value, ...)` | Adds a Code 128 barcode. |
 | `Line()` | Adds a horizontal rule. |
 | `PageBreak()` | Adds a page break. |
 | `Component(IComponent component)` | Composes reusable content. |
@@ -243,6 +244,19 @@ Image paths are resolved when the document is published. A missing image path or
 | `Position`, `PositionFromPage` | Absolute positioning. |
 | `Margin(...)` | Wrap margin. |
 | `Border`, `Rounded`, `Crop` | Visual styling. |
+
+## Barcodes
+
+Barcodes are rendered as vector shapes (grouped rectangles), not raster images, so they stay crisp at any zoom or print size. The value is validated eagerly: a null, empty, or non-ASCII-32-126 value throws `ArgumentException` at the fluent-call site, not at publish time.
+
+| API | Purpose |
+| --- | --- |
+| `Width`, `Height`, `MaxWidth` | Controls size in points. `Width` is the total rendered width of the bars; `Height` is the bar height. |
+| `AltText` | Adds accessibility text. |
+| `ShowText(bool show = true)` | Shows or hides the human-readable value below the bars (shown by default). |
+| `BarColor(string hexColor)` | Sets the bar color. |
+| `AlignLeft`, `AlignCenter`, `AlignRight` | Aligns the barcode's paragraph. |
+| `Caption` | Adds a caption paragraph below the barcode. |
 
 ## Charts
 

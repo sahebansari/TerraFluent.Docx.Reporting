@@ -9,13 +9,14 @@
     <IsPackable>true</IsPackable>
     <PackageId>TerraFluent.Docx.Reporting</PackageId>
     <Title>TerraFluent.Docx.Reporting</Title>
-    <VersionPrefix>1.2.1</VersionPrefix>
+    <VersionPrefix>1.2.2</VersionPrefix>
     <Authors>TerraFluent.Docx.Reporting contributors</Authors>
     <Company>TerraFluent.Docx.Reporting contributors</Company>
     <Product>TerraFluent.Docx.Reporting</Product>
     <Description>A fluent .NET library for generating professional DOCX documents with tables, images, charts, headers, footers, styles, templates, page layout, and Open XML validation-friendly output.</Description>
     <PackageTags>docx;word;openxml;document-generation;reports;reporting;invoices;templates</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>See CHANGELOG.md for release notes.</PackageReleaseNotes>
     <PackageProjectUrl>https://github.com/sahebansari/TerraFluent.Docx.Reporting</PackageProjectUrl>
@@ -36,6 +37,7 @@
     <None Include="..\..\CHANGELOG.md" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" />
     <None Include="..\..\docs\**\*.md" Pack="true" PackagePath="docs\" />
+    <None Include="icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
 </Project>

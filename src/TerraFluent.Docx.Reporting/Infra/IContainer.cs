@@ -112,6 +112,16 @@ public interface IContainer
     /// <param name="configure">Optional configuration for size, alignment, wrapping, and styling.</param>
     IContainer Image(Stream imageStream, string fileName, Action<IImageDescriptor>? configure = null);
 
+    /// <summary>Adds a Code 128 barcode encoding <paramref name="value"/>, rendered as vector bars.</summary>
+    /// <param name="value">The text to encode. Must be ASCII 32-126 (space through "~").</param>
+    /// <param name="width">Optional total rendered width in points. The bar height is unaffected.</param>
+    IContainer Barcode(string value, float? width = null);
+
+    /// <summary>Adds a Code 128 barcode with full sizing, coloring, and labeling options.</summary>
+    /// <param name="value">The text to encode. Must be ASCII 32-126 (space through "~").</param>
+    /// <param name="configure">Configures size, color, alignment, and the human-readable text line. Cannot be null.</param>
+    IContainer Barcode(string value, Action<IBarcodeDescriptor> configure);
+
     /// <summary>Adds a horizontal rule (a paragraph with a bottom border).</summary>
     IContainer Line();
 

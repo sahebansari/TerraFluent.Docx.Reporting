@@ -1,5 +1,6 @@
 using System.Text;
 using TerraFluent.Docx.Reporting.Core;
+using TerraFluent.Docx.Reporting.Core.Barcodes;
 using TerraFluent.Docx.Reporting.Core.Elements;
 
 namespace TerraFluent.Docx.Reporting.Ooxml;
@@ -40,6 +41,7 @@ internal sealed class BodyBuilder
             case TableOfContentsElement toc: WriteTableOfContents(toc); break;
             case ChartElement chart: WriteChart(chart);             break;
             case ImageElement   img:   WriteImage(img);             break;
+            case BarcodeElement bc:    WriteBarcode(bc);            break;
             case LineElement:          WriteHorizontalLine();       break;
             case PageBreakElement:     WritePageBreak();            break;
         }
@@ -759,6 +761,95 @@ internal sealed class BodyBuilder
             "right" => "right",
             _ => null
         };
+
+    // -------------------------------------------------------------------------
+    // Barcode
+    // -------------------------------------------------------------------------
+
+    private void WriteBarcode(BarcodeElement bc)
+    {
+        var widths = Code128Encoder.Encode(bc.Value);
+        int totalModules = widths.Sum();
+        var (cx, cy, moduleEmu) = BarcodeExtents(bc, totalModules);
+
+        int docPrId = _ctx.NextDocPrId();
+        string name = $"Barcode{docPrId}";
+
+        _sb.Append("<w:p>");
+        var jc = ImageJustification(bc.Alignment);
+        if (jc != null)
+            _sb.Append($"<w:pPr><w:jc w:val=\"{jc}\"/></w:pPr>");
+        _sb.Append("<w:r><w:drawing>");
+        _sb.Append("<wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\">");
+        _sb.Append($"<wp:extent cx=\"{cx}\" cy=\"{cy}\"/>");
+        _sb.Append("<wp:effectExtent l=\"0\" t=\"0\" r=\"0\" b=\"0\"/>");
+        _sb.Append($"<wp:docPr id=\"{docPrId}\" name=\"{OoxmlWriter.Escape(name)}\"");
+        if (!string.IsNullOrWhiteSpace(bc.AltText))
+            _sb.Append($" descr=\"{OoxmlWriter.Escape(bc.AltText)}\"");
+        _sb.Append("/>");
+        _sb.Append("<wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect=\"1\"/></wp:cNvGraphicFramePr>");
+        _sb.Append("<a:graphic><a:graphicData uri=\"http://schemas.microsoft.com/office/word/2010/wordprocessingGroup\">");
+        _sb.Append("<wpg:wgp>");
+        _sb.Append("<wpg:cNvGrpSpPr/>");
+        _sb.Append($"<wpg:grpSpPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"{cx}\" cy=\"{cy}\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"{cx}\" cy=\"{cy}\"/></a:xfrm></wpg:grpSpPr>");
+        WriteBarcodeBars(widths, cy, moduleEmu, docPrId, name, bc.BarColor);
+        _sb.Append("</wpg:wgp>");
+        _sb.Append("</a:graphicData></a:graphic>");
+        _sb.Append("</wp:inline>");
+        _sb.AppendLine("</w:drawing></w:r></w:p>");
+
+        if (bc.ShowText)
+        {
+            var textEl = new TextElement { Alignment = bc.Alignment ?? "center", SpacingBefore = 2 };
+            textEl.Runs.Add(new TextRun { Text = bc.Value, FontFamily = "Courier New", FontSize = 9 });
+            WriteParagraph(textEl);
+        }
+
+        if (bc.Caption != null)
+            WriteParagraph(bc.Caption);
+    }
+
+    private void WriteBarcodeBars(int[] widths, long cy, double moduleEmu, int docPrId, string name, string barColor)
+    {
+        long offsetModules = 0;
+        int barIndex = 0;
+        for (int i = 0; i < widths.Length; i++)
+        {
+            int w = widths[i];
+            bool isBar = i % 2 == 0;
+            if (isBar)
+            {
+                long x = (long)(offsetModules * moduleEmu);
+                long barCx = (long)(w * moduleEmu);
+                barIndex++;
+                _sb.Append("<wps:wsp>");
+                _sb.Append($"<wps:cNvPr id=\"{docPrId * 1000 + barIndex}\" name=\"{OoxmlWriter.Escape(name)}Bar{barIndex}\"/>");
+                _sb.Append("<wps:cNvSpPr/>");
+                _sb.Append($"<wps:spPr><a:xfrm><a:off x=\"{x}\" y=\"0\"/><a:ext cx=\"{Math.Max(1, barCx)}\" cy=\"{cy}\"/></a:xfrm>");
+                _sb.Append("<a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom>");
+                _sb.Append($"<a:solidFill><a:srgbClr val=\"{barColor}\"/></a:solidFill><a:ln><a:noFill/></a:ln></wps:spPr>");
+                _sb.Append("<wps:bodyPr/>");
+                _sb.Append("</wps:wsp>");
+            }
+            offsetModules += w;
+        }
+    }
+
+    private static (long cx, long cy, double moduleEmu) BarcodeExtents(BarcodeElement bc, int totalModules)
+    {
+        const float DefaultModulePoints = 2f;
+        const float DefaultHeightPoints = 40f;
+
+        double widthPoints = bc.Width ?? totalModules * DefaultModulePoints;
+        double heightPoints = bc.Height ?? DefaultHeightPoints;
+
+        if (bc.MaxWidth.HasValue && widthPoints > bc.MaxWidth.Value)
+            widthPoints = bc.MaxWidth.Value;
+
+        long cx = (long)(widthPoints * 12700);
+        long cy = (long)(heightPoints * 12700);
+        return (cx, cy, cx / (double)totalModules);
+    }
 
     private static void WriteParagraphBorders(TextElement text, StringBuilder pPr)
     {

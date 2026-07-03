@@ -345,6 +345,8 @@ internal sealed class TableCellDescriptor : ITableCellDescriptor
     public IContainer Image(string filePath, Action<IImageDescriptor> configure) => _container.Image(filePath, configure);
     public IContainer Image(byte[] imageBytes, string fileName, Action<IImageDescriptor>? configure = null) => _container.Image(imageBytes, fileName, configure);
     public IContainer Image(Stream imageStream, string fileName, Action<IImageDescriptor>? configure = null) => _container.Image(imageStream, fileName, configure);
+    public IContainer Barcode(string value, float? width = null) => _container.Barcode(value, width);
+    public IContainer Barcode(string value, Action<IBarcodeDescriptor> configure) => _container.Barcode(value, configure);
     public IContainer Line() => _container.Line();
     public IContainer PageBreak() => _container.PageBreak();
     public IContainer Component(IComponent component) => _container.Component(component);

@@ -8,7 +8,7 @@ Welcome to the TerraFluent.Docx.Reporting documentation. Use this page as the ma
 | --- | --- |
 | [Getting Started](GETTING_STARTED.md) | Installation, requirements, your first document, and output options. |
 | [Core Concepts](CORE_CONCEPTS.md) | How the fluent builder works, descriptors, units, colors, themes, styles, and reusable components. |
-| [Feature Guide](FEATURES.md) | End-to-end examples for pages, text, tables, images, lists, charts, templates, and document layout. |
+| [Feature Guide](FEATURES.md) | End-to-end examples for pages, text, tables, images, barcodes, lists, charts, templates, and document layout. |
 | [API Reference](API.md) | Public API tables for every descriptor, helper type, and template API. |
 | [Samples](SAMPLES.md) | Links to runnable sample files and what each sample demonstrates. |
 | [Troubleshooting](TROUBLESHOOTING.md) | Common issues with Open XML, images, package metadata, Word repair prompts, and layout. |
@@ -23,6 +23,7 @@ Welcome to the TerraFluent.Docx.Reporting documentation. Use this page as the ma
 - [Add headers and footers](FEATURES.md#headers-footers-and-page-numbers)
 - [Build tables](FEATURES.md#tables)
 - [Insert images](FEATURES.md#images)
+- [Add barcodes](FEATURES.md#barcodes)
 - [Build charts](FEATURES.md#charts)
 - [Use Word templates](FEATURES.md#templates)
 - [Reusable components](CORE_CONCEPTS.md#reusable-components)
@@ -36,6 +37,7 @@ TerraFluent.Docx.Reporting is a fluent .NET library for generating `.docx` repor
 - Styled text, headings, hyperlinks, bookmarks, cross references, footnotes, endnotes, callouts, and tab stops.
 - Tables with headers, widths, fixed and relative columns, borders, cell padding, spans, vertical merges, and nested content.
 - Images from files, byte arrays, or streams with sizing, captions, wrapping, floating, borders, rounded corners, and cropping.
+- Code 128 barcodes rendered as vector shapes, with sizing, bar color, alignment, and captions.
 - Lists, charts, reusable themes, custom paragraph/table styles, reusable components, and `.docx` template replacement.
 
 ## Minimal Example

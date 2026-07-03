@@ -114,6 +114,17 @@ internal static class FeatureShowcaseSample
                             .Caption("Stream"));
                     });
 
+                    col.Item().H3("Barcode Embedding");
+                    col.Item().Text("Barcodes are rendered as vector shapes (not raster images), so they stay crisp at any size. " +
+                                    "They encode text as Code 128 and can appear anywhere an image can: page body, headers, footers, " +
+                                    "columns, rows, and table cells.");
+                    col.Item().Barcode("ACME-99887766", bc => bc
+                        .Width(220)
+                        .Height(50)
+                        .BarColor(Colors.Blue.L700)
+                        .AlignCenter()
+                        .Caption("Figure 2. Product tracking code, centered with a caption."));
+
                     col.Item().H3("Text Styling");
                     col.Item().Text(t =>
                     {

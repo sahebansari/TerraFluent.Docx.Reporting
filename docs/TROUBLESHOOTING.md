@@ -7,7 +7,7 @@
 TerraFluent.Docx.Reporting validates fluent API inputs eagerly, before any Open XML is written, so configuration mistakes fail fast at the call site instead of producing a damaged or unreadable `.docx`:
 
 - `ArgumentNullException` - a required callback, object, or stream argument was `null` (e.g. `Document.Create(null)`, `Component(null)`).
-- `ArgumentException` - a required string was `null`, empty, or whitespace (e.g. an image file path or page number format), or a stream was unreadable/unwritable.
+- `ArgumentException` - a required string was `null`, empty, or whitespace (e.g. an image file path or page number format), a stream was unreadable/unwritable, or a barcode value contained a character outside ASCII 32-126.
 - `ArgumentOutOfRangeException` - a numeric value was outside its valid range, such as a negative margin, a non-positive width/height, or a column count outside 1-45.
 
 See [Public API Contract](API.md#public-api-contract) for the full validation contract.

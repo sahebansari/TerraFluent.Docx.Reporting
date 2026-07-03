@@ -216,6 +216,23 @@ page.Content().Image(File.ReadAllBytes("photo.png"), "photo.png", image => image
     .Crop(4, 4, 4, 4));
 ```
 
+## Barcodes
+
+```csharp
+page.Content().Barcode("SKU-00100011");
+
+page.Content().Barcode("ACME-99887766", bc => bc
+    .Width(220)
+    .Height(50)
+    .BarColor(Colors.Blue.L700)
+    .AlignCenter()
+    .Caption("Figure 1. Product tracking code"));
+
+page.Content().Barcode("Internal-Only", bc => bc.ShowText(false));
+```
+
+Barcodes encode text as Code 128 and render as vector bars (not raster images), so they stay crisp at any size. Only ASCII 32-126 (space through `~`) can be encoded; anything else throws `ArgumentException` immediately.
+
 ## Charts
 
 ```csharp

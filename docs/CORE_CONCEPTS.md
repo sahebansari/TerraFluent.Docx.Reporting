@@ -2,7 +2,7 @@
 
 [Documentation Home](README.md) | [Getting Started](GETTING_STARTED.md) | [Feature Guide](FEATURES.md) | [API Reference](API.md)
 
-TerraFluent.Docx.Reporting uses a fluent builder model. You compose a document by configuring descriptors: document, page, container, table, row, cell, image, chart, and text descriptors.
+TerraFluent.Docx.Reporting uses a fluent builder model. You compose a document by configuring descriptors: document, page, container, table, row, cell, image, barcode, chart, and text descriptors.
 
 ## Document Flow
 
@@ -101,7 +101,7 @@ Containers are reusable content surfaces. You will see them in:
 - Column items created with `column.Item()`.
 - Table cells created with `row.Cell()`.
 
-Because table cells are containers, you can nest headings, text, lists, images, and tables inside cells.
+Because table cells are containers, you can nest headings, text, lists, images, barcodes, and tables inside cells.
 
 ## Sections And Page Settings
 

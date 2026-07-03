@@ -828,6 +828,105 @@ public class OoxmlValidationTest
     }
 
     [Fact]
+    public void Barcode_DefaultSizing_EncodesExpectedModuleCountAndShowsText()
+    {
+        // Code 128 Subset B: every data/start/checksum symbol is 11 modules (6 widths, 3 bars),
+        // and the STOP symbol is 13 modules (7 widths, 4 bars). For an n-character message that's
+        // (n+2) 11-module symbols (START + n data + checksum) plus the 13-module STOP symbol.
+        const string value = "TEST";
+        const int n = 4;
+        const int expectedModules = 11 * (n + 2) + 13; // 79
+        const int expectedBars = 3 * (n + 2) + 4; // 22
+        const long expectedCx = expectedModules * 2 * 12700L; // default module width is 2pt
+        const long expectedCy = 40 * 12700L; // default bar height is 40pt
+
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Margin(Unit.Centimetre(2.54f));
+                p.Content().Barcode(value);
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var documentXml = ReadZipEntry(bytes, "word/document.xml");
+        Assert.Contains($"""<wp:extent cx="{expectedCx}" cy="{expectedCy}"/>""", documentXml);
+        Assert.Equal(expectedBars, CountOccurrences(documentXml, "<wps:wsp>"));
+        Assert.Contains("wordprocessingGroup", documentXml);
+        Assert.Contains($"<w:t xml:space=\"preserve\">{value}</w:t>", documentXml);
+    }
+
+    [Fact]
+    public void Barcode_SupportsSizingColorAlignmentCaptionAndHidingText()
+    {
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Margin(Unit.Centimetre(2.54f));
+                p.Content().Barcode("ABC-123", bc => bc
+                    .Width(200)
+                    .Height(50)
+                    .MaxWidth(150)
+                    .BarColor(Colors.Blue.L700)
+                    .AlignCenter()
+                    .AltText("Product barcode")
+                    .ShowText(false)
+                    .Caption("Figure 1. Product barcode"));
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var documentXml = ReadZipEntry(bytes, "word/document.xml");
+        Assert.Contains("""<wp:extent cx="1905000" cy="635000"/>""", documentXml); // width capped to MaxWidth=150pt; height (bar height) is set independently
+        Assert.Contains("""<w:jc w:val="center"/>""", documentXml);
+        Assert.Contains($"""<a:solidFill><a:srgbClr val="{Colors.Blue.L700}"/></a:solidFill>""", documentXml);
+        Assert.Contains("descr=\"Product barcode\"", documentXml);
+        Assert.Contains("Figure 1. Product barcode", documentXml);
+        Assert.DoesNotContain("<w:t xml:space=\"preserve\">ABC-123</w:t>", documentXml);
+    }
+
+    [Fact]
+    public void Barcode_InHeaderFooterAndTableCell_PassesOoxmlValidation()
+    {
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Margin(Unit.Centimetre(2.54f));
+                p.Header().Barcode("HDR001", 80);
+                p.Footer().Barcode("FTR001", 80);
+                p.Content().Column(col =>
+                {
+                    col.Item().Barcode("BODY001", 80);
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text("Left");
+                        row.RelativeItem().Barcode("ROW001", 60);
+                    });
+                    col.Item().Table(t =>
+                    {
+                        t.ColumnsDefinition(d => { d.RelativeColumn(1); d.RelativeColumn(1); });
+                        t.Row(r =>
+                        {
+                            r.Cell().Text("SKU");
+                            r.Cell().Barcode("CELL001", 60);
+                        });
+                    });
+                });
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+    }
+
+    [Fact]
     public void SpanFluentStyling_AppliesToNewSpanWithoutEmptyRuns()
     {
         var bytes = Document.Create(c =>
@@ -2099,6 +2198,12 @@ public class OoxmlValidationTest
                 p.Content().Image(missingImage);
             });
         }).PublishDocx());
+
+        Assert.Throws<ArgumentException>(() => Document.Create(c =>
+            c.Page(p => p.Content().Barcode(""))));
+
+        Assert.Throws<ArgumentException>(() => Document.Create(c =>
+            c.Page(p => p.Content().Barcode("café"))));  // outside ASCII 32-126
     }
 
     private static byte[] CreateMinimalPng(int width, int height)

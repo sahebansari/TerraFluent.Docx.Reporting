@@ -1,6 +1,12 @@
+<p align="center">
+  <img src="src/TerraFluent.Docx.Reporting/icon.png" alt="TerraFluent.Docx.Reporting" width="64" height="64" />
+</p>
+
 # TerraFluent.Docx.Reporting
 
 TerraFluent.Docx.Reporting is a fluent .NET library for generating professional `.docx` files without automating Microsoft Word. It writes Open XML packages directly and is designed for reports, invoices, proposals, policy documents, and company-branded templates.
+
+> **New in 1.2.2:** [Code 128 barcode support](#barcodes) — rendered as crisp vector shapes (no raster image), and usable anywhere an image can go: page body, headers, footers, columns, rows, and table cells. See the [changelog](CHANGELOG.md) for details.
 
 ## Install
 
@@ -89,6 +95,19 @@ page.Content().Image(bytes, "photo.png", img => img
     .Border(1, Colors.Grey.L400)
     .Rounded()
     .Crop(4, 4, 4, 4));
+```
+
+### Barcodes
+
+```csharp
+page.Content().Barcode("SKU-00100011");
+
+page.Content().Barcode("ACME-99887766", bc => bc
+    .Width(220)
+    .Height(50)
+    .BarColor(Colors.Blue.L700)
+    .AlignCenter()
+    .Caption("Figure 1. Product tracking code"));
 ```
 
 ### Paragraph Callouts And Page Columns

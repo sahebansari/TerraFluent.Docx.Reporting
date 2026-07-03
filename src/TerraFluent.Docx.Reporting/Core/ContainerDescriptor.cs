@@ -1,3 +1,4 @@
+using TerraFluent.Docx.Reporting.Core.Barcodes;
 using TerraFluent.Docx.Reporting.Core.Elements;
 using TerraFluent.Docx.Reporting.Infra;
 
@@ -189,6 +190,31 @@ internal sealed class ContainerDescriptor : IContainer
         using var ms = new MemoryStream();
         imageStream.CopyTo(ms);
         return Image(ms.ToArray(), fileName, configure);
+    }
+
+    public IContainer Barcode(string value, float? width = null)
+    {
+        Code128Encoder.Encode(value);
+        if (width.HasValue)
+            Guard.PositiveFinite(width.Value, nameof(width));
+
+        Element.Elements.Add(new BarcodeElement
+        {
+            Value = value,
+            Width = width
+        });
+        return this;
+    }
+
+    public IContainer Barcode(string value, Action<IBarcodeDescriptor> configure)
+    {
+        Code128Encoder.Encode(value);
+        Guard.NotNull(configure, nameof(configure));
+
+        var barcode = new BarcodeElement { Value = value };
+        configure(new BarcodeDescriptor(barcode, _theme));
+        Element.Elements.Add(barcode);
+        return this;
     }
 
     public IContainer Line()
@@ -394,6 +420,82 @@ internal sealed class ImageDescriptor : IImageDescriptor
 
     private static float NormalizePercent(float value)
         => MathCompat.Clamp(value, 0, 100);
+}
+
+internal sealed class BarcodeDescriptor : IBarcodeDescriptor
+{
+    private readonly BarcodeElement _barcode;
+    private readonly DocumentTheme _theme;
+
+    public BarcodeDescriptor(BarcodeElement barcode, DocumentTheme? theme = null)
+    {
+        _barcode = barcode;
+        _theme = theme ?? DocumentTheme.Default;
+    }
+
+    public IBarcodeDescriptor Width(float points)
+    {
+        _barcode.Width = Guard.PositiveFinite(points, nameof(points));
+        return this;
+    }
+
+    public IBarcodeDescriptor Height(float points)
+    {
+        _barcode.Height = Guard.PositiveFinite(points, nameof(points));
+        return this;
+    }
+
+    public IBarcodeDescriptor MaxWidth(float points)
+    {
+        _barcode.MaxWidth = Guard.PositiveFinite(points, nameof(points));
+        return this;
+    }
+
+    public IBarcodeDescriptor AltText(string text)
+    {
+        _barcode.AltText = Guard.NotNull(text, nameof(text));
+        return this;
+    }
+
+    public IBarcodeDescriptor ShowText(bool show = true)
+    {
+        _barcode.ShowText = show;
+        return this;
+    }
+
+    public IBarcodeDescriptor BarColor(string hexColor)
+    {
+        _barcode.BarColor = HexColor.Validate(hexColor, nameof(hexColor));
+        return this;
+    }
+
+    public IBarcodeDescriptor AlignLeft()
+    {
+        _barcode.Alignment = "left";
+        return this;
+    }
+
+    public IBarcodeDescriptor AlignCenter()
+    {
+        _barcode.Alignment = "center";
+        return this;
+    }
+
+    public IBarcodeDescriptor AlignRight()
+    {
+        _barcode.Alignment = "right";
+        return this;
+    }
+
+    public IBarcodeDescriptor Caption(string text, Action<ITextDescriptor>? configure = null)
+    {
+        Guard.NotNull(text, nameof(text));
+        var descriptor = new TextDescriptor(text, _theme);
+        descriptor.AlignCenter().FontSize(9).FontColor(Colors.Grey.L600).SpacingBefore(2).SpacingAfter(4);
+        configure?.Invoke(descriptor);
+        _barcode.Caption = descriptor.Element;
+        return this;
+    }
 }
 
 internal sealed class ListDescriptor : IListDescriptor
