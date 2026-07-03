@@ -6,7 +6,7 @@
 
 TerraFluent.Docx.Reporting is a fluent .NET library for generating professional `.docx` files without automating Microsoft Word. It writes Open XML packages directly and is designed for reports, invoices, proposals, policy documents, and company-branded templates.
 
-> **New in 1.2.2:** [Code 128 barcodes](#barcodes) rendered as crisp vector shapes, auto-numbered figure/table captions with a table of figures, document protection (Word's "Restrict Editing", with password), and richer charts (legend placement, axis titles, data labels, stacked bars). See the [changelog](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/CHANGELOG.md) for details.
+> **New in 1.3.0:** [Code 128 barcodes](#barcodes) rendered as crisp vector shapes, auto-numbered figure/table captions with a table of figures, document protection (Word's "Restrict Editing", with password), and richer charts (legend placement, axis titles, data labels, stacked bars, sizing and alignment). See the [changelog](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/CHANGELOG.md) for details.
 
 ## Install
 
