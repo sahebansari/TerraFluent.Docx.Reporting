@@ -75,9 +75,11 @@ public class ReleasePolishTest
         Assert.Contains("dotnet test TerraFluent.Docx.Reporting.sln", workflow);
         Assert.Contains("dotnet pack src\\TerraFluent.Docx.Reporting\\TerraFluent.Docx.Reporting.csproj", workflow);
         Assert.Contains("NuGet/login@v1", workflow);
-        Assert.Contains("refs/heads/main", workflow);
-        Assert.Contains("refs/heads/master", workflow);
-        Assert.Contains("refs/tags/v", workflow);
+        // Publishing is tag-driven only: pushing a v* tag is the sole trigger for the publish
+        // job. Branch pushes and manual runs build, test, and pack, but never publish.
+        Assert.Contains("if: startsWith(github.ref, 'refs/tags/v')", workflow);
+        Assert.DoesNotContain("refs/heads/main", workflow);
+        Assert.DoesNotContain("refs/heads/master", workflow);
         Assert.Contains("id-token: write", workflow);
         Assert.Contains("environment: release", workflow);
         Assert.Contains("secrets.NUGET_USER", workflow);
