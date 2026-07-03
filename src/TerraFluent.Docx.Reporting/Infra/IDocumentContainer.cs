@@ -44,6 +44,17 @@ public interface IDocumentContainer
     /// <summary>Sets the document's creator (application) metadata property.</summary>
     IDocumentContainer MetadataCreator(string creator);
 
+    /// <summary>
+    /// Restricts how readers can edit the document in Word (Word's "Restrict Editing" feature),
+    /// written as an OOXML <c>documentProtection</c> setting. With a password, Word requires it to
+    /// stop the protection; without one, anyone can stop it, so it acts as a guard rail rather than
+    /// security. This is not encryption - the file content remains readable by any tool.
+    /// </summary>
+    /// <param name="protection">Which kinds of edits remain allowed.</param>
+    /// <param name="password">Optional password required to stop the protection in Word. Word uses
+    /// at most the first 15 characters.</param>
+    IDocumentContainer RestrictEditing(DocumentProtection protection, string? password = null);
+
     /// <summary>Composes a reusable <see cref="IDocument"/> module into this document.</summary>
     /// <param name="document">The document module to add. Cannot be null.</param>
     IDocumentContainer Compose(IDocument document);

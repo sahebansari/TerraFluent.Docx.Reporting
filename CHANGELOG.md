@@ -8,6 +8,12 @@ This project follows semantic versioning. Public releases are distributed as a f
 
 - Added `IContainer.Barcode(...)` for Code 128 barcodes, rendered as vector DrawingML shapes (no raster image or media part), usable anywhere an image can go: page body, headers, footers, columns, rows, and table cells. Supports sizing, bar color, alignment, an optional human-readable text line, and captions.
 - Added a package icon to the NuGet package.
+- Added auto-numbered captions: `IImageDescriptor.FigureCaption(...)` ("Figure 1.") and `ITableDescriptor.Caption(...)` ("Table 1.") emit Word `SEQ` fields that Word renumbers on field update, plus `IContainer.TableOfFigures(...)` to list them.
+- Added `IDocumentContainer.RestrictEditing(...)` for Word's "Restrict Editing" protection (read-only, comments-only, tracked-changes-only, forms-only), with optional password stored as an ISO/IEC 29500 salted, spun SHA-512 verifier. Verified against Word itself, including a hex-padding case that the widely-copied MSDN reference implementation gets wrong.
+- Added chart options: `Legend(position)`/`HideLegend()`, `CategoryAxisTitle`/`ValueAxisTitle`, `DataLabels()`, and `Stacked()`/`PercentStacked()` for multi-series bar charts.
+- Added chart sizing and alignment: `Width(points)`/`Height(points)` (default remains 6 x 3.5 inches) and `AlignLeft`/`AlignCenter`/`AlignRight`, so charts can be fitted to narrow containers such as row columns instead of overflowing at a fixed size.
+- Fixed: text containing XML 1.0-illegal control characters (e.g. a stray `\x02`) is now stripped instead of being written raw into `document.xml`, which Word previously reported as a corrupt/repairable file.
+- Fixed: `.gif` images added without an explicit `Width`/`Height` now use their real pixel dimensions instead of silently falling back to a fixed placeholder box.
 
 ## 1.2.1
 

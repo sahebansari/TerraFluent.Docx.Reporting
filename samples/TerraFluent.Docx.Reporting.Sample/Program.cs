@@ -8,6 +8,7 @@ var documents = new[]
 {
     FeatureShowcaseSample.Generate(outputDirectory, imagePath),
     BarcodeShowcaseSample.Generate(outputDirectory, logoPath),
+    MarketAnalysisSample.Generate(outputDirectory, imagePath),
     InvoiceSample.Generate(outputDirectory, logoPath),
     LongInvoiceSample.Generate(outputDirectory, logoPath),
     AnnualReportSample.Generate(outputDirectory, logoPath, imagePath),

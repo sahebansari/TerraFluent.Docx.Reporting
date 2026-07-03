@@ -24,6 +24,15 @@ public interface IImageDescriptor
     IImageDescriptor Caption(string text, Action<ITextDescriptor>? configure = null);
 
     /// <summary>
+    /// Adds an auto-numbered caption paragraph ("Figure 1. <paramref name="description"/>") below the
+    /// image. The number is a Word <c>SEQ Figure</c> field, renumbered by Word when fields are updated,
+    /// and the caption is picked up by <see cref="IContainer.TableOfFigures"/>.
+    /// </summary>
+    /// <param name="description">The caption text shown after the number.</param>
+    /// <param name="configure">Optional formatting for the caption paragraph, applied after the default caption style.</param>
+    IImageDescriptor FigureCaption(string description, Action<ITextDescriptor>? configure = null);
+
+    /// <summary>
     /// Left-aligns the image. For an inline image, aligns its paragraph. For a floating image with no
     /// explicit <see cref="Position"/>/<see cref="PositionFromPage"/>/float call, sets its horizontal position.
     /// </summary>

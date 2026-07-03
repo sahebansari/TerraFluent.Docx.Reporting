@@ -828,6 +828,221 @@ public class OoxmlValidationTest
     }
 
     [Fact]
+    public void NumberedCaptions_EmitSeqFieldsAndTableOfFiguresCollectsThem()
+    {
+        var pngBytes = CreateMinimalPng(1, 1);
+
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Margin(Unit.Centimetre(2.54f));
+                p.Content().Column(col =>
+                {
+                    col.Item().TableOfFigures();
+                    col.Item().TableOfFigures("List of Tables", "Table");
+                    col.Item().Image(pngBytes, "first.png", img => img.Width(50).FigureCaption("Revenue chart"));
+                    col.Item().Image(pngBytes, "second.png", img => img.Width(50).FigureCaption("Cost breakdown"));
+                    col.Item().Table(t =>
+                    {
+                        t.Caption("Quarterly results");
+                        t.ColumnsDefinition(d => { d.RelativeColumn(1); d.RelativeColumn(1); });
+                        t.Row(r => { r.Cell().Text("A"); r.Cell().Text("B"); });
+                    });
+                });
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var documentXml = ReadZipEntry(bytes, "word/document.xml");
+        // Two figure captions with sequential cached numbers, one table caption starting its own sequence.
+        Assert.Equal(2, CountOccurrences(documentXml, "SEQ Figure \\* ARABIC"));
+        Assert.Equal(1, CountOccurrences(documentXml, "SEQ Table \\* ARABIC"));
+        Assert.Contains("<w:t xml:space=\"preserve\">Figure </w:t>", documentXml);
+        Assert.Contains("<w:t xml:space=\"preserve\">Table </w:t>", documentXml);
+        Assert.Contains("<w:t xml:space=\"preserve\">. Revenue chart</w:t>", documentXml);
+        Assert.Contains("<w:t xml:space=\"preserve\">. Cost breakdown</w:t>", documentXml);
+        Assert.Contains("<w:t xml:space=\"preserve\">. Quarterly results</w:t>", documentXml);
+        // Table-of-figures fields over each caption sequence.
+        Assert.Contains("TOC \\h \\z \\c &quot;Figure&quot;", documentXml);
+        Assert.Contains("TOC \\h \\z \\c &quot;Table&quot;", documentXml);
+        // The table caption paragraph precedes its table.
+        Assert.True(documentXml.IndexOf(". Quarterly results", StringComparison.Ordinal)
+                    < documentXml.IndexOf("<w:tbl>", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void RestrictEditing_WithoutPassword_EmitsEnforcedDocumentProtection()
+    {
+        var bytes = Document.Create(c =>
+        {
+            c.RestrictEditing(DocumentProtection.ReadOnly);
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Content().Text("Protected content.");
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var settingsXml = ReadZipEntry(bytes, "word/settings.xml");
+        Assert.Contains("""<w:documentProtection w:edit="readOnly" w:enforcement="1"/>""", settingsXml);
+    }
+
+    [Fact]
+    public void RestrictEditing_WithPassword_EmitsSha512HashAndSalt()
+    {
+        var bytes = Document.Create(c =>
+        {
+            c.RestrictEditing(DocumentProtection.CommentsOnly, "secret123");
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Content().Text("Comment-only content.");
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var settingsXml = ReadZipEntry(bytes, "word/settings.xml");
+        Assert.Contains("w:edit=\"comments\"", settingsXml);
+        Assert.Contains("w:enforcement=\"1\"", settingsXml);
+        Assert.Contains("w:cryptAlgorithmSid=\"14\"", settingsXml);
+        Assert.Contains("w:cryptSpinCount=\"100000\"", settingsXml);
+        Assert.Contains("w:hash=\"", settingsXml);
+        Assert.Contains("w:salt=\"", settingsXml);
+    }
+
+    [Fact]
+    public void Charts_SupportLegendPositionAxisTitlesDataLabelsAndStacking()
+    {
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Content().Chart(chart => chart
+                    .Title("Stacked Revenue")
+                    .Width(300)
+                    .Height(200)
+                    .AlignCenter()
+                    .Legend(ChartLegendPosition.Bottom)
+                    .CategoryAxisTitle("Quarter")
+                    .ValueAxisTitle("Revenue ($M)")
+                    .DataLabels()
+                    .Stacked()
+                    .Series("Product", s => s.Bar("Q1", 4.1).Bar("Q2", 4.3))
+                    .Series("Services", s => s.Bar("Q1", 2.2).Bar("Q2", 2.6)));
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var documentXml = ReadZipEntry(bytes, "word/document.xml");
+        Assert.Contains("""<wp:extent cx="3810000" cy="2540000"/>""", documentXml); // 300x200pt in EMU
+        Assert.Contains("""<w:jc w:val="center"/>""", documentXml);
+
+        var chartXml = ReadZipEntry(bytes, "word/charts/chart1.xml");
+        Assert.Contains("""<c:grouping val="stacked"/>""", chartXml);
+        Assert.Contains("""<c:overlap val="100"/>""", chartXml);
+        Assert.Contains("""<c:legendPos val="b"/>""", chartXml);
+        Assert.Contains("""<c:showVal val="1"/>""", chartXml);
+        Assert.Contains("<a:t>Quarter</a:t>", chartXml);
+        Assert.Contains("<a:t>Revenue ($M)</a:t>", chartXml);
+        Assert.Contains("""<a:bodyPr rot="-5400000" vert="horz"/>""", chartXml);
+    }
+
+    [Fact]
+    public void Charts_HideLegend_OmitsLegendElement()
+    {
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Content().Chart(chart => chart
+                    .Title("No Legend")
+                    .HideLegend()
+                    .Series(s => s.Bar("A", 1).Bar("B", 2)));
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+        Assert.DoesNotContain("<c:legend>", ReadZipEntry(bytes, "word/charts/chart1.xml"));
+    }
+
+    [Fact]
+    public void Charts_StackedOnNonBarChart_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => Document.Create(c =>
+            c.Page(p => p.Content().Chart(chart => chart
+                .Series(s => s.Line("A", 1))
+                .Stacked()))));
+
+        Assert.Throws<InvalidOperationException>(() => Document.Create(c =>
+            c.Page(p => p.Content().Chart(chart => chart
+                .Stacked()
+                .Series(s => s.Line("A", 1))))));
+    }
+
+    [Fact]
+    public void Text_StripsIllegalXmlControlCharactersButKeepsTabNewlineCarriageReturn()
+    {
+        // U+0002 (STX) and U+001F are not legal XML 1.0 characters and must be stripped, not
+        // just escaped, or the resulting document.xml is not well-formed XML and Word reports
+        // it as corrupt. Tab/LF/CR are legal XML whitespace and must be preserved.
+        var illegal1 = char.ConvertFromUtf32(0x02);
+        var illegal2 = char.ConvertFromUtf32(0x1F);
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Margin(Unit.Centimetre(2.54f));
+                p.Content().Text($"Before{illegal1}Mid{illegal2}After\tTab & <End>");
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var documentXml = ReadZipEntry(bytes, "word/document.xml");
+        // Ordinal comparison matters here: the default culture-aware string.Contains() treats
+        // some control characters as collation-ignorable, which would make this assertion pass
+        // trivially (matching "everywhere") even if Escape() failed to strip them.
+        Assert.DoesNotContain(illegal1, documentXml, StringComparison.Ordinal);
+        Assert.DoesNotContain(illegal2, documentXml, StringComparison.Ordinal);
+        Assert.Contains("BeforeMidAfter\tTab &amp; &lt;End&gt;", documentXml);
+    }
+
+    [Fact]
+    public void Images_GifDimensions_AreParsedFromHeader()
+    {
+        // Minimal GIF89a header: 6-byte signature + Logical Screen Descriptor (width/height as
+        // little-endian 16-bit values), enough for ImageReader to parse real pixel dimensions.
+        byte[] gifBytes = [(byte)'G', (byte)'I', (byte)'F', (byte)'8', (byte)'9', (byte)'a', 64, 0, 32, 0, 0, 0, 0];
+
+        var bytes = Document.Create(c =>
+        {
+            c.Page(p =>
+            {
+                p.Size(PageSize.A4);
+                p.Margin(Unit.Centimetre(2.54f));
+                p.Content().Image(gifBytes, "animation.gif");
+            });
+        }).PublishDocx();
+
+        Assert.Empty(Validate(bytes));
+
+        var documentXml = ReadZipEntry(bytes, "word/document.xml");
+        // 64x32 px at 96 DPI -> 48x24 pt -> 609600x304800 EMU. The old fallback (no GIF reader)
+        // would have produced the fixed placeholder box of 90x67.5pt (1143000x857250 EMU) instead.
+        Assert.Contains("""<wp:extent cx="609600" cy="304800"/>""", documentXml);
+    }
+
+    [Fact]
     public void Barcode_DefaultSizing_EncodesExpectedModuleCountAndShowsText()
     {
         // Code 128 Subset B: every data/start/checksum symbol is 11 modules (6 widths, 3 bars),

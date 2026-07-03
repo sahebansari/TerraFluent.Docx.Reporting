@@ -12,6 +12,8 @@ internal sealed class DocumentContainerDescriptor : IDocumentContainer
     internal List<PageDescriptor> Pages { get; } = [];
     internal DocumentTheme ThemeSettings { get; private set; } = DocumentTheme.Default;
     internal DocumentStyleCatalog Styles { get; } = new();
+    internal DocumentProtection? Protection { get; private set; }
+    internal string? ProtectionPassword { get; private set; }
 
     public IDocumentContainer Theme(DocumentTheme theme)
     {
@@ -60,6 +62,13 @@ internal sealed class DocumentContainerDescriptor : IDocumentContainer
     public IDocumentContainer MetadataSubject(string subject)   { Subject = subject; return this; }
     public IDocumentContainer MetadataKeywords(string keywords) { Keywords = keywords; return this; }
     public IDocumentContainer MetadataCreator(string creator)   { Creator = creator; return this; }
+
+    public IDocumentContainer RestrictEditing(DocumentProtection protection, string? password = null)
+    {
+        Protection = protection;
+        ProtectionPassword = string.IsNullOrEmpty(password) ? null : password;
+        return this;
+    }
 
     public IDocumentContainer Compose(IDocument document)
     {

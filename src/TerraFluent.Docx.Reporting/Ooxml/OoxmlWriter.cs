@@ -26,7 +26,7 @@ internal static class OoxmlWriter
         WriteText(archive, "docProps/app.xml",     AppPropsXml(doc));
         WriteText(archive, "word/_rels/document.xml.rels", DocumentRelsXml(ctx, sections));
         WriteText(archive, "word/styles.xml",      StylesXml(doc.ThemeSettings, doc.Styles));
-        WriteText(archive, "word/settings.xml",    SettingsXml(sections));
+        WriteText(archive, "word/settings.xml",    SettingsXml(doc, sections));
         WriteText(archive, "word/numbering.xml",   NumberingXml(ctx));
         WriteText(archive, "word/document.xml",    documentXml);
         if (ctx.Footnotes.Count > 0)
@@ -358,7 +358,7 @@ internal static class OoxmlWriter
         return sb.ToString();
     }
 
-    private static string SettingsXml(List<SectionPart> sections)
+    private static string SettingsXml(DocumentContainerDescriptor doc, List<SectionPart> sections)
     {
         var evenOdd = sections.SelectMany(s => s.HeaderFooterParts).Any(p => p.ReferenceType == "even")
             ? "  <w:evenAndOddHeaders/>\n"
@@ -367,9 +367,37 @@ internal static class OoxmlWriter
         <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
           <w:displayBackgroundShape/>
-          <w:defaultTabStop w:val="720"/>
+        {DocumentProtectionXml(doc)}  <w:defaultTabStop w:val="720"/>
         {evenOdd}</w:settings>
         """;
+    }
+
+    // CT_Settings is a schema-ordered sequence: documentProtection must come after
+    // displayBackgroundShape and before defaultTabStop.
+    private static string DocumentProtectionXml(DocumentContainerDescriptor doc)
+    {
+        if (doc.Protection is not { } protection)
+            return string.Empty;
+
+        var edit = protection switch
+        {
+            TerraFluent.Docx.Reporting.DocumentProtection.CommentsOnly => "comments",
+            TerraFluent.Docx.Reporting.DocumentProtection.TrackedChangesOnly => "trackedChanges",
+            TerraFluent.Docx.Reporting.DocumentProtection.FormsOnly => "forms",
+            _ => "readOnly"
+        };
+
+        if (doc.ProtectionPassword == null)
+            return $"  <w:documentProtection w:edit=\"{edit}\" w:enforcement=\"1\"/>\n";
+
+        var salt = DocumentProtectionHash.GenerateSalt();
+        var hash = DocumentProtectionHash.ComputeHash(doc.ProtectionPassword, salt);
+        return "  <w:documentProtection" +
+               $" w:edit=\"{edit}\" w:enforcement=\"1\"" +
+               " w:cryptProviderType=\"rsaAES\" w:cryptAlgorithmClass=\"hash\"" +
+               " w:cryptAlgorithmType=\"typeAny\" w:cryptAlgorithmSid=\"14\"" +
+               $" w:cryptSpinCount=\"{DocumentProtectionHash.SpinCount}\"" +
+               $" w:hash=\"{Convert.ToBase64String(hash)}\" w:salt=\"{Convert.ToBase64String(salt)}\"/>\n";
     }
 
     private static string NumberingXml(DocumentRenderContext ctx)
@@ -797,11 +825,12 @@ internal static class OoxmlWriter
         });
         if (kind is not "pie" and not "doughnut")
         {
-            sb.AppendLine(CategoryAxisXml());
-            sb.AppendLine(ValueAxisXml());
+            sb.AppendLine(CategoryAxisXml(chart));
+            sb.AppendLine(ValueAxisXml(chart));
         }
         sb.AppendLine("""    </c:plotArea>""");
-        sb.AppendLine("""    <c:legend><c:legendPos val="r"/><c:layout/><c:overlay val="0"/></c:legend>""");
+        if (chart.ShowLegend)
+            sb.AppendLine($"""    <c:legend><c:legendPos val="{chart.LegendPosition}"/><c:layout/><c:overlay val="0"/></c:legend>""");
         sb.AppendLine("""    <c:plotVisOnly val="1"/>""");
         sb.AppendLine("""    <c:dispBlanksAs val="gap"/>""");
         sb.AppendLine("""    <c:showDLblsOverMax val="0"/>""");
@@ -839,7 +868,7 @@ internal static class OoxmlWriter
         var sb = new StringBuilder();
         sb.AppendLine("""              <c:barChart>""");
         sb.AppendLine("""                <c:barDir val="col"/>""");
-        sb.AppendLine("""                <c:grouping val="clustered"/>""");
+        sb.AppendLine($"""                <c:grouping val="{chart.BarGrouping}"/>""");
         sb.AppendLine("""                <c:varyColors val="0"/>""");
 
         int seriesIndex = 0;
@@ -849,7 +878,11 @@ internal static class OoxmlWriter
             seriesIndex++;
         }
 
+        if (chart.ShowDataLabels)
+            sb.AppendLine(DataLabelsXml());
         sb.AppendLine("""                <c:gapWidth val="150"/>""");
+        if (chart.BarGrouping != "clustered")
+            sb.AppendLine("""                <c:overlap val="100"/>""");
         sb.AppendLine("""                <c:axId val="48650112"/>""");
         sb.AppendLine("""                <c:axId val="48672768"/>""");
         sb.AppendLine("""              </c:barChart>""");
@@ -870,6 +903,8 @@ internal static class OoxmlWriter
             seriesIndex++;
         }
 
+        if (chart.ShowDataLabels)
+            sb.AppendLine(DataLabelsXml());
         sb.AppendLine("""                <c:marker val="1"/>""");
         sb.AppendLine("""                <c:smooth val="0"/>""");
         sb.AppendLine("""                <c:axId val="48650112"/>""");
@@ -891,6 +926,8 @@ internal static class OoxmlWriter
         sb.AppendLine($"""              <c:{tag}>""");
         sb.AppendLine("""                <c:varyColors val="1"/>""");
         sb.Append(SeriesXml(series, 0, doughnut ? "doughnut" : "pie"));
+        if (chart.ShowDataLabels)
+            sb.AppendLine(DataLabelsXml());
         sb.AppendLine("""                <c:firstSliceAng val="0"/>""");
         sb.AppendLine(holeSize);
         sb.AppendLine($"""              </c:{tag}>""");
@@ -973,13 +1010,15 @@ internal static class OoxmlWriter
                   </c:spPr>
         """;
 
-    private static string CategoryAxisXml() => """
+    // Per CT_CatAx/CT_ValAx, an axis title element must come after axPos (and any gridlines) and
+    // before numFmt/majorTickMark.
+    private static string CategoryAxisXml(ChartElement chart) => $"""
               <c:catAx>
                 <c:axId val="48650112"/>
                 <c:scaling><c:orientation val="minMax"/></c:scaling>
                 <c:delete val="0"/>
                 <c:axPos val="b"/>
-                <c:majorTickMark val="none"/>
+        {AxisTitleXml(chart.CategoryAxisTitle, rotated: false)}        <c:majorTickMark val="none"/>
                 <c:minorTickMark val="none"/>
                 <c:tickLblPos val="nextTo"/>
                 <c:crossAx val="48672768"/>
@@ -991,14 +1030,14 @@ internal static class OoxmlWriter
               </c:catAx>
         """;
 
-    private static string ValueAxisXml() => """
+    private static string ValueAxisXml(ChartElement chart) => $"""
               <c:valAx>
                 <c:axId val="48672768"/>
                 <c:scaling><c:orientation val="minMax"/></c:scaling>
                 <c:delete val="0"/>
                 <c:axPos val="l"/>
                 <c:majorGridlines/>
-                <c:numFmt formatCode="General" sourceLinked="1"/>
+        {AxisTitleXml(chart.ValueAxisTitle, rotated: true)}        <c:numFmt formatCode="General" sourceLinked="1"/>
                 <c:majorTickMark val="none"/>
                 <c:minorTickMark val="none"/>
                 <c:tickLblPos val="nextTo"/>
@@ -1006,6 +1045,29 @@ internal static class OoxmlWriter
                 <c:crosses val="autoZero"/>
                 <c:crossBetween val="between"/>
               </c:valAx>
+        """;
+
+    private static string AxisTitleXml(string? title, bool rotated)
+    {
+        if (string.IsNullOrWhiteSpace(title))
+            return string.Empty;
+
+        var bodyPr = rotated ? """<a:bodyPr rot="-5400000" vert="horz"/>""" : "<a:bodyPr/>";
+        return "        <c:title><c:tx><c:rich>" +
+               bodyPr + "<a:lstStyle/>" +
+               $"""<a:p><a:r><a:rPr lang="en-US" sz="1000"/><a:t>{Escape(title)}</a:t></a:r><a:endParaRPr lang="en-US"/></a:p>""" +
+               "</c:rich></c:tx><c:layout/><c:overlay val=\"0\"/></c:title>\n";
+    }
+
+    private static string DataLabelsXml() => """
+                        <c:dLbls>
+                          <c:showLegendKey val="0"/>
+                          <c:showVal val="1"/>
+                          <c:showCatName val="0"/>
+                          <c:showSerName val="0"/>
+                          <c:showPercent val="0"/>
+                          <c:showBubbleSize val="0"/>
+                        </c:dLbls>
         """;
 
     private static string ChartValue(double value) =>
@@ -1041,12 +1103,30 @@ internal static class OoxmlWriter
         src.CopyTo(dest);
     }
 
-    internal static string Escape(string? s) =>
-        s is null ? string.Empty : s
-            .Replace("&",  "&amp;")
-            .Replace("<",  "&lt;")
-            .Replace(">",  "&gt;")
-            .Replace("\"", "&quot;");
+    internal static string Escape(string? s)
+    {
+        if (s is null || s.Length == 0)
+            return string.Empty;
+
+        var sb = new StringBuilder(s.Length);
+        foreach (var c in s)
+        {
+            // XML 1.0 forbids raw control characters other than tab/LF/CR (Char production:
+            // #x9 | #xA | #xD | [#x20-...]); Word treats a document containing one as corrupt.
+            if (c < 0x20 && c is not '\t' and not '\n' and not '\r')
+                continue;
+
+            switch (c)
+            {
+                case '&': sb.Append("&amp;"); break;
+                case '<': sb.Append("&lt;"); break;
+                case '>': sb.Append("&gt;"); break;
+                case '"': sb.Append("&quot;"); break;
+                default: sb.Append(c); break;
+            }
+        }
+        return sb.ToString();
+    }
 
     private static int HalfPoints(float points) => Math.Max(1, (int)(points * 2));
 }

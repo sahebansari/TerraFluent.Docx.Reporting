@@ -317,10 +317,20 @@ internal sealed class BodyBuilder
             WriteParagraph(title);
         }
 
-        var min = MathCompat.Clamp(toc.MinLevel, 1, 9);
-        var max = MathCompat.Clamp(toc.MaxLevel, min, 9);
+        string instruction;
+        if (toc.CaptionLabel != null)
+        {
+            instruction = $"TOC \\h \\z \\c &quot;{OoxmlWriter.Escape(toc.CaptionLabel)}&quot;";
+        }
+        else
+        {
+            var min = MathCompat.Clamp(toc.MinLevel, 1, 9);
+            var max = MathCompat.Clamp(toc.MaxLevel, min, 9);
+            instruction = $"TOC \\o &quot;{min}-{max}&quot; \\h \\z \\u";
+        }
+
         _sb.Append("<w:p><w:r><w:fldChar w:fldCharType=\"begin\"/></w:r>");
-        _sb.Append($"<w:r><w:instrText xml:space=\"preserve\"> TOC \\o &quot;{min}-{max}&quot; \\h \\z \\u </w:instrText></w:r>");
+        _sb.Append($"<w:r><w:instrText xml:space=\"preserve\"> {instruction} </w:instrText></w:r>");
         _sb.Append("<w:r><w:fldChar w:fldCharType=\"separate\"/></w:r>");
         _sb.Append("<w:r><w:t>Right-click to update field.</w:t></w:r>");
         _sb.AppendLine("<w:r><w:fldChar w:fldCharType=\"end\"/></w:r></w:p>");
@@ -370,6 +380,9 @@ internal sealed class BodyBuilder
     private void WriteTable(TableElement table)
     {
         EnsureTableColumns(table);
+
+        if (table.Caption != null)
+            WriteCaption(table.Caption, table.CaptionLabel, table.CaptionDescription);
 
         float totalRelative = table.Columns
             .Where(c => c.Mode == TableColumnDef.SizingMode.Relative)
@@ -529,11 +542,15 @@ internal sealed class BodyBuilder
     {
         var rId = _relationships.AddChart(chart);
         var docPrId = _ctx.NextDocPrId();
-        const long cx = 5486400; // 6 inches
-        const long cy = 3200400; // 3.5 inches
+        long cx = ToEmu(chart.Width ?? 432);   // default 6 inches
+        long cy = ToEmu(chart.Height ?? 252);  // default 3.5 inches
 
         var chartKind = chart.Series.FirstOrDefault()?.Kind ?? "bar";
-        _sb.Append("<w:p><w:r><w:drawing>");
+        _sb.Append("<w:p>");
+        var jc = ImageJustification(chart.Alignment);
+        if (jc != null)
+            _sb.Append($"<w:pPr><w:jc w:val=\"{jc}\"/></w:pPr>");
+        _sb.Append("<w:r><w:drawing>");
         _sb.Append("<wp:inline distT=\"0\" distB=\"0\" distL=\"0\" distR=\"0\">");
         _sb.Append($"<wp:extent cx=\"{cx}\" cy=\"{cy}\"/>");
         _sb.Append("<wp:effectExtent l=\"0\" t=\"0\" r=\"0\" b=\"0\"/>");
@@ -576,8 +593,62 @@ internal sealed class BodyBuilder
         _sb.AppendLine("</w:drawing></w:r></w:p>");
 
         if (img.Caption != null)
-            WriteParagraph(img.Caption);
+            WriteCaption(img.Caption, img.CaptionLabel, img.CaptionDescription);
     }
+
+    // Static captions render as-is; auto-numbered ones are rebuilt around a SEQ field so Word can
+    // renumber them (and collect them into a TOC \c table of figures) on field update. A fresh
+    // TextElement is built each time rather than mutating the stored one, so publishing the same
+    // document twice cannot double-prepend the label runs.
+    private void WriteCaption(TextElement caption, string? label, string? description)
+    {
+        if (label == null)
+        {
+            WriteParagraph(caption);
+            return;
+        }
+
+        int number = label == "Table" ? _ctx.GetNextTableNumber() : _ctx.GetNextFigureNumber();
+
+        var para = new TextElement
+        {
+            Alignment = caption.Alignment,
+            LineHeight = caption.LineHeight,
+            SpacingBefore = caption.SpacingBefore,
+            SpacingAfter = caption.SpacingAfter,
+            LeftIndent = caption.LeftIndent,
+            RightIndent = caption.RightIndent,
+            KeepWithNext = caption.KeepWithNext,
+            KeepLinesTogether = caption.KeepLinesTogether,
+            StyleId = caption.StyleId,
+            ShadingColor = caption.ShadingColor
+        };
+
+        var format = caption.Runs.Count > 0 ? caption.Runs[0] : null;
+        para.Runs.Add(CaptionRun(format, $"{label} "));
+        var field = CaptionRun(format, string.Empty);
+        field.Kind = TextRunKind.Field;
+        field.FieldInstruction = $"SEQ {label} \\* ARABIC";
+        field.FieldCachedText = number.ToString();
+        para.Runs.Add(field);
+        para.Runs.Add(CaptionRun(format, $". {description}"));
+
+        WriteParagraph(para);
+    }
+
+    private static TextRun CaptionRun(TextRun? format, string text) => new()
+    {
+        Text = text,
+        Bold = format?.Bold,
+        Italic = format?.Italic,
+        Underline = format?.Underline,
+        Strikethrough = format?.Strikethrough,
+        FontSize = format?.FontSize,
+        FontColor = format?.FontColor,
+        FontFamily = format?.FontFamily,
+        VerticalAlignment = format?.VerticalAlignment,
+        HighlightColor = format?.HighlightColor
+    };
 
     private void WriteInlineImage(ImageElement img, string rId, int docPrId, string name, long cx, long cy)
     {

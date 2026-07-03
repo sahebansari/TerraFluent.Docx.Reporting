@@ -5,4 +5,5 @@ internal sealed class TableOfContentsElement : IElement
     public string Title { get; set; } = "Contents";
     public int MinLevel { get; set; } = 1;
     public int MaxLevel { get; set; } = 3;
+    public string? CaptionLabel { get; set; }  // Non-null = table of figures over this SEQ label instead of a heading TOC
 }

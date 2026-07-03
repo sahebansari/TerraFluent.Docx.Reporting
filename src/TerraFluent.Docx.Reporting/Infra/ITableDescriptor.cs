@@ -64,6 +64,15 @@ public interface ITableDescriptor
 
     /// <summary>Sets the minimum height, in points, for header rows.</summary>
     ITableDescriptor HeaderRowMinHeight(float points);
+
+    /// <summary>
+    /// Adds an auto-numbered caption paragraph ("Table 1. <paramref name="description"/>") above the
+    /// table. The number is a Word <c>SEQ Table</c> field, renumbered by Word when fields are updated,
+    /// and the caption is picked up by <see cref="IContainer.TableOfFigures"/> with label "Table".
+    /// </summary>
+    /// <param name="description">The caption text shown after the number.</param>
+    /// <param name="configure">Optional formatting for the caption paragraph, applied after the default caption style.</param>
+    ITableDescriptor Caption(string description, Action<ITextDescriptor>? configure = null);
 }
 
 /// <summary>

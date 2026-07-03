@@ -65,6 +65,18 @@ internal sealed class TableDescriptor : ITableDescriptor
         return this;
     }
 
+    public ITableDescriptor Caption(string description, Action<ITextDescriptor>? configure = null)
+    {
+        Guard.NotNull(description, nameof(description));
+        var descriptor = new TextDescriptor(description, _theme);
+        descriptor.AlignCenter().FontSize(9).FontColor(Colors.Grey.L600).SpacingBefore(4).SpacingAfter(2);
+        configure?.Invoke(descriptor);
+        Element.Caption = descriptor.Element;
+        Element.CaptionLabel = "Table";
+        Element.CaptionDescription = description;
+        return this;
+    }
+
     public ITableDescriptor ColumnsDefinition(Action<ITableColumnsDefinition> configure)
     {
         var def = new TableColumnsDefinitionDescriptor(Element);
@@ -337,6 +349,7 @@ internal sealed class TableCellDescriptor : ITableCellDescriptor
     public IContainer Bookmark(string name) => _container.Bookmark(name);
     public IContainer Bookmark(string name, string text, Action<ITextDescriptor>? configure = null) => _container.Bookmark(name, text, configure);
     public IContainer TableOfContents(string title = "Contents", int minLevel = 1, int maxLevel = 3) => _container.TableOfContents(title, minLevel, maxLevel);
+    public IContainer TableOfFigures(string title = "Table of Figures", string captionLabel = "Figure") => _container.TableOfFigures(title, captionLabel);
     public IContainer BulletList(Action<IListDescriptor> configure) => _container.BulletList(configure);
     public IContainer NumberedList(Action<IListDescriptor> configure) => _container.NumberedList(configure);
     public IContainer Table(Action<ITableDescriptor> configure) => _container.Table(configure);

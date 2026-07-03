@@ -157,7 +157,7 @@ internal static class AnnualReportSample
                             .MaxWidth(160)
                             .AltText("Abstract brand artwork")
                             .AlignCenter()
-                            .Caption("Figure 1. Brand artwork embedded from a byte array."));
+                            .FigureCaption("Brand artwork embedded from a byte array."));
                     });
 
                     col.Item().H2("Letter From The Managing Partner");
@@ -229,6 +229,13 @@ internal static class AnnualReportSample
 
                     col.Item().Chart(chart => chart
                         .Title("Quarterly Revenue: Actual vs Target")
+                        .Width(450)
+                        .Height(270)
+                        .AlignCenter()
+                        .Legend(ChartLegendPosition.Bottom)
+                        .CategoryAxisTitle("Quarter")
+                        .ValueAxisTitle("Revenue ($M)")
+                        .DataLabels()
                         .Series("Actual", s => s
                             .Color(Colors.Green.L700)
                             .Bar("Q1", 4.1)
@@ -409,7 +416,7 @@ internal static class AnnualReportSample
                         .Height(70)
                         .AltText("Abstract dashboard artwork")
                         .AlignRight()
-                        .Caption("Figure 2. Stream-backed image in a landscape section."));
+                        .FigureCaption("Stream-backed image in a landscape section."));
                 });
             });
         }).PublishDocx(documentPath);

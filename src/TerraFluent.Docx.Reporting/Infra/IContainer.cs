@@ -74,6 +74,15 @@ public interface IContainer
     /// <param name="maxLevel">The highest heading level (1-9) to include.</param>
     IContainer TableOfContents(string title = "Contents", int minLevel = 1, int maxLevel = 3);
 
+    /// <summary>
+    /// Adds a Word table-of-figures field that Word populates from auto-numbered captions when the
+    /// field is updated. Lists captions added via <see cref="IImageDescriptor.FigureCaption"/> (label
+    /// "Figure") or <see cref="ITableDescriptor.Caption"/> (label "Table").
+    /// </summary>
+    /// <param name="title">The heading text shown above the table of figures.</param>
+    /// <param name="captionLabel">The caption sequence to list: "Figure" or "Table".</param>
+    IContainer TableOfFigures(string title = "Table of Figures", string captionLabel = "Figure");
+
     /// <summary>Adds an unordered (bulleted) list.</summary>
     /// <param name="configure">Adds items and configures markers. Cannot be null.</param>
     IContainer BulletList(Action<IListDescriptor> configure);

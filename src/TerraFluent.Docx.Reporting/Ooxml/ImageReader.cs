@@ -13,6 +13,7 @@ internal static class ImageReader
             {
                 ".png"          => ReadPng(fs),
                 ".jpg" or ".jpeg" => ReadJpeg(fs),
+                ".gif"          => ReadGif(fs),
                 _               => (0, 0)
             };
         }
@@ -32,6 +33,7 @@ internal static class ImageReader
             {
                 ".png" => ReadPng(ms),
                 ".jpg" or ".jpeg" => ReadJpeg(ms),
+                ".gif" => ReadGif(ms),
                 _ => (0, 0)
             };
         }
@@ -100,5 +102,17 @@ internal static class ImageReader
             stream.Seek(segLen - 2, SeekOrigin.Current);
         }
         return (0, 0);
+    }
+
+    // GIF: 6-byte signature "GIF87a"/"GIF89a", then a Logical Screen Descriptor whose first
+    // 4 bytes are width and height, both little-endian.
+    private static (int, int) ReadGif(Stream stream)
+    {
+        var buf = new byte[10];
+        if (stream.Read(buf, 0, buf.Length) < 10) return (0, 0);
+        if (buf[0] != 'G' || buf[1] != 'I' || buf[2] != 'F') return (0, 0);
+        int w = buf[6] | (buf[7] << 8);
+        int h = buf[8] | (buf[9] << 8);
+        return (w, h);
     }
 }

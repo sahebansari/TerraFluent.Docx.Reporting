@@ -270,6 +270,23 @@ page.Content().Chart(chart => chart
         .Color(Colors.Orange.L700)));
 ```
 
+Legend placement, axis titles, data labels, and stacked bars:
+
+```csharp
+page.Content().Chart(chart => chart
+    .Title("Stacked Revenue by Quarter")
+    .Width(430)                           // points; default is 432 x 252 (6 x 3.5 in)
+    .Height(250)
+    .AlignCenter()
+    .Legend(ChartLegendPosition.Bottom)   // or .HideLegend()
+    .CategoryAxisTitle("Quarter")
+    .ValueAxisTitle("Revenue ($M)")
+    .DataLabels()
+    .Stacked()                            // or .PercentStacked(); bar charts only
+    .Series("Product", s => s.Bar("Q1", 4.1).Bar("Q2", 4.3).Color(Colors.Blue.L700))
+    .Series("Services", s => s.Bar("Q1", 2.2).Bar("Q2", 2.6).Color(Colors.Orange.L700)));
+```
+
 ## Rows And Columns
 
 ```csharp
@@ -304,6 +321,42 @@ page.Content().H2("Operations");
 ```
 
 Word updates TOC fields when the document is opened or when fields are refreshed.
+
+## Auto-Numbered Captions And Table Of Figures
+
+`FigureCaption` (images) and `Caption` (tables) insert Word `SEQ` fields, so Word renumbers captions automatically and can collect them into a table of figures:
+
+```csharp
+page.Content().TableOfFigures();                       // lists Figure captions
+page.Content().TableOfFigures("List of Tables", "Table");  // lists Table captions
+
+page.Content().Image("chart.png", img => img
+    .Width(200)
+    .FigureCaption("Revenue growth chart"));           // "Figure 1. Revenue growth chart"
+
+page.Content().Table(t =>
+{
+    t.Caption("Quarterly results by region");          // "Table 1. Quarterly results by region", above the table
+    t.ColumnsDefinition(d => { d.RelativeColumn(1); d.RelativeColumn(1); });
+    t.Row(r => { r.Cell().Text("North"); r.Cell().Text("$4.1M"); });
+});
+```
+
+Figure captions render below the image; table captions render above the table. The static `Caption(...)` image overload remains available for unnumbered captions.
+
+## Restrict Editing
+
+`RestrictEditing` applies Word's "Restrict Editing" protection, optionally guarded by a password:
+
+```csharp
+Document.Create(doc =>
+{
+    doc.RestrictEditing(DocumentProtection.ReadOnly, "secret123");
+    doc.Page(page => page.Content().Text("Read-only content."));
+});
+```
+
+Modes: `ReadOnly`, `CommentsOnly`, `TrackedChangesOnly`, and `FormsOnly`. The password (first 15 characters) is stored as a salted, spun SHA-512 verifier per ISO/IEC 29500. This is a guard rail, not security: the file is not encrypted, and a malicious tool can strip the setting.
 
 ## Templates
 

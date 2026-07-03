@@ -19,9 +19,9 @@ internal sealed class TableElement : IElement
     public float? Width { get; set; }
     public string WidthType { get; set; } = "pct";
     public string Alignment { get; set; } = "left";
+    public TextElement? Caption { get; set; }  // Styled caption paragraph, rendered above the table
     public string? CaptionLabel { get; set; }  // "Table" for auto-numbered
-    public string? CaptionDescription { get; set; }  // Description text after number
-    public int? CaptionTableNumber { get; set; }  // Auto-assigned table number
+    public string? CaptionDescription { get; set; }  // Description text after the SEQ-field number
 }
 
 internal sealed class TableColumnDef

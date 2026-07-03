@@ -1,12 +1,12 @@
 <p align="center">
-  <img src="src/TerraFluent.Docx.Reporting/icon.png" alt="TerraFluent.Docx.Reporting" width="64" height="64" />
+  <img src="https://raw.githubusercontent.com/sahebansari/TerraFluent.Docx.Reporting/master/src/TerraFluent.Docx.Reporting/icon.png" alt="TerraFluent.Docx.Reporting" width="64" height="64" />
 </p>
 
 # TerraFluent.Docx.Reporting
 
 TerraFluent.Docx.Reporting is a fluent .NET library for generating professional `.docx` files without automating Microsoft Word. It writes Open XML packages directly and is designed for reports, invoices, proposals, policy documents, and company-branded templates.
 
-> **New in 1.2.2:** [Code 128 barcode support](#barcodes) — rendered as crisp vector shapes (no raster image), and usable anywhere an image can go: page body, headers, footers, columns, rows, and table cells. See the [changelog](CHANGELOG.md) for details.
+> **New in 1.2.2:** [Code 128 barcodes](#barcodes) rendered as crisp vector shapes, auto-numbered figure/table captions with a table of figures, document protection (Word's "Restrict Editing", with password), and richer charts (legend placement, axis titles, data labels, stacked bars). See the [changelog](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/CHANGELOG.md) for details.
 
 ## Install
 
@@ -147,15 +147,15 @@ Generated documents are written to `Desktop\SampleDocs`, including invoices, an 
 
 ## Documentation
 
-- [Documentation home and main menu](docs/README.md)
-- [Getting started](docs/GETTING_STARTED.md)
-- [Core concepts](docs/CORE_CONCEPTS.md)
-- [Feature guide with examples](docs/FEATURES.md)
-- [API reference](docs/API.md)
-- [Samples](docs/SAMPLES.md)
-- [Troubleshooting](docs/TROUBLESHOOTING.md)
-- [Release and compatibility checklist](docs/RELEASE.md)
-- [Changelog](CHANGELOG.md)
+- [Documentation home and main menu](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/README.md)
+- [Getting started](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/GETTING_STARTED.md)
+- [Core concepts](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/CORE_CONCEPTS.md)
+- [Feature guide with examples](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/FEATURES.md)
+- [API reference](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/API.md)
+- [Samples](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/SAMPLES.md)
+- [Troubleshooting](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/TROUBLESHOOTING.md)
+- [Release and compatibility checklist](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/docs/RELEASE.md)
+- [Changelog](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/CHANGELOG.md)
 
 ## Validation
 
@@ -170,6 +170,6 @@ For application compatibility smoke checks, open the generated sample documents 
 
 ## License
 
-TerraFluent.Docx.Reporting is a free public library released under the [MIT License](LICENSE.txt).
+TerraFluent.Docx.Reporting is a free public library released under the [MIT License](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/LICENSE.txt).
 
 NuGet packages are built with MIT license metadata, README content, XML documentation, and symbols.

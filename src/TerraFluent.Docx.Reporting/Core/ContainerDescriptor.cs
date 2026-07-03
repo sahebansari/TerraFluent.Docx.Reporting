@@ -100,6 +100,17 @@ internal sealed class ContainerDescriptor : IContainer
         return this;
     }
 
+    public IContainer TableOfFigures(string title = "Table of Figures", string captionLabel = "Figure")
+    {
+        Guard.NotWhiteSpace(captionLabel, nameof(captionLabel));
+        Element.Elements.Add(new TableOfContentsElement
+        {
+            Title = title,
+            CaptionLabel = captionLabel
+        });
+        return this;
+    }
+
     public IContainer BulletList(Action<IListDescriptor> configure)
         => List(ordered: false, configure);
 
@@ -279,6 +290,17 @@ internal sealed class ImageDescriptor : IImageDescriptor
         descriptor.AlignCenter().FontSize(9).FontColor(Colors.Grey.L600).SpacingBefore(2).SpacingAfter(4);
         configure?.Invoke(descriptor);
         _image.Caption = descriptor.Element;
+        _image.CaptionLabel = null;
+        _image.CaptionDescription = null;
+        return this;
+    }
+
+    public IImageDescriptor FigureCaption(string description, Action<ITextDescriptor>? configure = null)
+    {
+        Guard.NotNull(description, nameof(description));
+        Caption(description, configure);
+        _image.CaptionLabel = "Figure";
+        _image.CaptionDescription = description;
         return this;
     }
 
@@ -644,6 +666,89 @@ internal sealed class ChartDescriptor : IChartDescriptor
         return this;
     }
 
+    IChartDescriptor IChartDescriptor.Width(float points)
+    {
+        Element.Width = Guard.PositiveFinite(points, nameof(points));
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.Height(float points)
+    {
+        Element.Height = Guard.PositiveFinite(points, nameof(points));
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.AlignLeft()
+    {
+        Element.Alignment = "left";
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.AlignCenter()
+    {
+        Element.Alignment = "center";
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.AlignRight()
+    {
+        Element.Alignment = "right";
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.Legend(ChartLegendPosition position)
+    {
+        Element.ShowLegend = true;
+        Element.LegendPosition = position switch
+        {
+            ChartLegendPosition.Left => "l",
+            ChartLegendPosition.Top => "t",
+            ChartLegendPosition.Bottom => "b",
+            _ => "r"
+        };
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.HideLegend()
+    {
+        Element.ShowLegend = false;
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.CategoryAxisTitle(string title)
+    {
+        Element.CategoryAxisTitle = Guard.NotWhiteSpace(title, nameof(title));
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.ValueAxisTitle(string title)
+    {
+        Element.ValueAxisTitle = Guard.NotWhiteSpace(title, nameof(title));
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.DataLabels(bool show)
+    {
+        Element.ShowDataLabels = show;
+        return this;
+    }
+
+    IChartDescriptor IChartDescriptor.Stacked()
+        => SetBarGrouping("stacked");
+
+    IChartDescriptor IChartDescriptor.PercentStacked()
+        => SetBarGrouping("percentStacked");
+
+    private IChartDescriptor SetBarGrouping(string grouping)
+    {
+        if (_seriesKind is not null and not "bar")
+            throw new InvalidOperationException(
+                $"Stacking applies only to bar charts, but this chart contains '{_seriesKind}' series.");
+
+        Element.BarGrouping = grouping;
+        return this;
+    }
+
     private void AddSeries(ChartSeriesElement series)
     {
         if (series.Points.Count > 0)
@@ -661,6 +766,12 @@ internal sealed class ChartDescriptor : IChartDescriptor
             if ((_seriesKind == "pie" || _seriesKind == "doughnut") && Element.Series.Any(s => s.Points.Count > 0))
             {
                 throw new InvalidOperationException("Pie and doughnut charts support only a single data series.");
+            }
+
+            if (Element.BarGrouping != "clustered" && _seriesKind != "bar")
+            {
+                throw new InvalidOperationException(
+                    $"Stacking applies only to bar charts, but this chart contains '{_seriesKind}' series.");
             }
         }
 

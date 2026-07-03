@@ -12,8 +12,7 @@ internal sealed class ImageElement : IElement
     public string? Alignment { get; set; }
     public TextElement? Caption { get; set; }
     public string? CaptionLabel { get; set; }  // "Figure" for auto-numbered, null for static
-    public string? CaptionDescription { get; set; }  // Description text after number
-    public int? CaptionFigureNumber { get; set; }  // Auto-assigned figure number
+    public string? CaptionDescription { get; set; }  // Description text after the SEQ-field number
     public string WrapMode { get; set; } = "inline";
     public string HorizontalRelativeFrom { get; set; } = "margin";
     public string VerticalRelativeFrom { get; set; } = "paragraph";

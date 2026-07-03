@@ -451,8 +451,9 @@ internal static class ApiReferenceSample
 
                     col.Item().H2("5.1 Sizing, Alt Text & Captions");
                     col.Item().Text("Width/Height/MaxWidth control sizing (aspect ratio is preserved when only one " +
-                                     "dimension is given); AltText sets accessibility text; Caption adds an " +
-                                     "auto-numbered \"Figure N.\" caption below the image.");
+                                     "dimension is given); AltText sets accessibility text; Caption adds a static " +
+                                     "caption below the image, while FigureCaption adds an auto-numbered " +
+                                     "\"Figure N.\" caption that Word renumbers and can collect into a table of figures.");
                     col.Item().Row(row =>
                     {
                         row.Spacing(10);
@@ -721,6 +722,9 @@ internal static class ApiReferenceSample
                             c.Item().H2("7.1 Bar Chart (single series)");
                             c.Item().Chart(chart => chart
                                 .Title("Quarterly Sales")
+                                .Width(230)
+                                .Height(175)
+                                .HideLegend()
                                 .Series(s => s
                                     .Color(Colors.Blue.L700)
                                     .Bar("Q1", 4.1)
@@ -734,6 +738,9 @@ internal static class ApiReferenceSample
                             c.Item().H2("7.2 Bar Chart (multi-series)");
                             c.Item().Chart(chart => chart
                                 .Title("Actual vs Target")
+                                .Width(230)
+                                .Height(175)
+                                .Legend(ChartLegendPosition.Bottom)
                                 .Series("Actual", s => s
                                     .Color(Colors.Blue.L700)
                                     .Bar("Q1", 4.1)
@@ -753,6 +760,9 @@ internal static class ApiReferenceSample
                             c.Item().H2("7.3 Line Chart (multi-series)");
                             c.Item().Chart(chart => chart
                                 .Title("Year-over-Year Trend")
+                                .Width(230)
+                                .Height(175)
+                                .Legend(ChartLegendPosition.Bottom)
                                 .Series("2025", s => s
                                     .Color(Colors.Grey.L500)
                                     .Line("Q1", 3.6).Line("Q2", 3.8).Line("Q3", 4.0).Line("Q4", 4.3))
@@ -771,6 +781,8 @@ internal static class ApiReferenceSample
                             c.Item().H2("7.4 Pie Chart");
                             c.Item().Chart(chart => chart
                                 .Title("Revenue By Practice")
+                                .Width(230)
+                                .Height(175)
                                 .Series(s => s
                                     .Pie("Automation", 7.4)
                                     .Pie("Consulting", 4.8)
@@ -783,6 +795,8 @@ internal static class ApiReferenceSample
                             c.Item().H2("7.5 Doughnut Chart");
                             c.Item().Chart(chart => chart
                                 .Title("Customer Segments")
+                                .Width(230)
+                                .Height(175)
                                 .Series(s => s
                                     .Color(Colors.Orange.L700)
                                     .Doughnut("Enterprise", 52)

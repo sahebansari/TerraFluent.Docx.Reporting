@@ -51,6 +51,7 @@ byte[] bytes = document.PublishDocx();
 | `TableStyle(string name, Action<ITableDescriptor> configure)` | Registers a reusable table style. |
 | `Page(Action<IPageDescriptor> configure)` | Adds a document section/page definition. |
 | `MetadataTitle`, `MetadataAuthor`, `MetadataSubject`, `MetadataKeywords`, `MetadataCreator` | Sets package metadata. |
+| `RestrictEditing(DocumentProtection protection, string? password = null)` | Restricts editing in Word (read-only, comments-only, tracked-changes-only, or forms-only), optionally requiring a password to stop the protection. Not encryption - the file content remains readable. |
 | `Compose(IDocument document)` | Composes a reusable document module. |
 
 ```csharp
@@ -141,6 +142,7 @@ doc.Page(page =>
 | `Bookmark(string name)` | Adds an invisible bookmark anchor. |
 | `Bookmark(string name, string text, Action<ITextDescriptor>? configure = null)` | Adds a visible bookmarked paragraph. |
 | `TableOfContents(string title = "Contents", int minLevel = 1, int maxLevel = 3)` | Adds a Word TOC field. |
+| `TableOfFigures(string title = "Table of Figures", string captionLabel = "Figure")` | Adds a Word table-of-figures field listing auto-numbered captions (use label "Table" for table captions). |
 | `BulletList` / `NumberedList` | Adds list content. |
 | `Table` | Adds a table. |
 | `Chart` | Adds a chart. |
@@ -202,6 +204,7 @@ page.Content().Text(t =>
 | `Row(Action<ITableRowDescriptor>)` | Adds a body row. |
 | `Border`, `CellPadding`, `HeaderBackground`, `AlternateRowBackground` | Sets table formatting. |
 | `RowMinHeight`, `HeaderRowMinHeight` | Sets row heights. |
+| `Caption(string description, ...)` | Adds an auto-numbered "Table N." caption above the table (Word `SEQ Table` field). |
 
 Column APIs:
 
@@ -237,6 +240,7 @@ Image paths are resolved when the document is published. A missing image path or
 | `Width`, `Height`, `MaxWidth` | Controls size in points. |
 | `AltText` | Adds accessibility text. |
 | `Caption` | Adds a caption paragraph. |
+| `FigureCaption(string description, ...)` | Adds an auto-numbered "Figure N." caption below the image (Word `SEQ Figure` field). |
 | `AlignLeft`, `AlignCenter`, `AlignRight` | Aligns inline image paragraphs. |
 | `WrapInline`, `WrapSquare`, `WrapTight`, `WrapTopBottom` | Text wrapping. |
 | `BehindText`, `InFrontOfText` | Floating layer. |
@@ -265,6 +269,13 @@ Barcodes are rendered as vector shapes (grouped rectangles), not raster images, 
 | `Title(string title)` | Sets chart title. |
 | `Series(Action<ISeriesDescriptor> configure)` | Adds an unnamed series. |
 | `Series(string name, Action<ISeriesDescriptor> configure)` | Adds a named series for legend output. |
+| `Width(float points)` / `Height(float points)` | Sets the chart frame size (default 432 x 252 points, i.e. 6 x 3.5 inches). Size charts to fit their container - a chart inside a row column or table cell does not shrink automatically. |
+| `AlignLeft`, `AlignCenter`, `AlignRight` | Aligns the chart's paragraph. |
+| `Legend(ChartLegendPosition position)` | Places the legend right, left, top, or bottom (default right). |
+| `HideLegend()` | Hides the legend. |
+| `CategoryAxisTitle(string title)` / `ValueAxisTitle(string title)` | Adds axis titles (ignored by pie/doughnut charts). |
+| `DataLabels(bool show = true)` | Shows each data point's value on the chart. |
+| `Stacked()` / `PercentStacked()` | Stacks multi-series bar charts (absolute or normalized to 100%). Bar charts only. |
 
 Series APIs:
 
