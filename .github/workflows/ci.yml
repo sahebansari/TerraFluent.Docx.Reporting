@@ -154,6 +154,25 @@ jobs:
           name: nuget-package
           path: artifacts/nuget
 
+      # Guards against publishing under the wrong version because <VersionPrefix>
+      # in the .csproj was left stale when the tag was cut.
+      - name: Verify tag matches package version
+        shell: bash
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          package_file=$(find artifacts/nuget -maxdepth 1 -name '*.nupkg' ! -name '*.snupkg' | head -n1)
+          if [ -z "$package_file" ]; then
+            echo "::error::No .nupkg found in artifacts/nuget."
+            exit 1
+          fi
+          package_version=$(basename "$package_file" .nupkg | sed -E 's/^TerraFluent\.Docx\.Reporting\.//')
+          echo "Git tag version : $tag_version"
+          echo "Package version : $package_version"
+          if [ "$tag_version" != "$package_version" ]; then
+            echo "::error::Tag v$tag_version does not match package version $package_version. Update <VersionPrefix> in src/TerraFluent.Docx.Reporting/TerraFluent.Docx.Reporting.csproj and re-tag."
+            exit 1
+          fi
+
       - name: Validate NuGet trusted publishing configuration
         env:
           NUGET_USER: ${{ secrets.NUGET_USER }}
