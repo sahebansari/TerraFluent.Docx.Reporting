@@ -4,13 +4,16 @@ TerraFluent.Docx.Reporting generates `.docx` packages and may process user-provi
 
 ## Supported Versions
 
-Security fixes are considered for the latest released package version and the current `main` branch. Older versions may receive fixes when the issue is severe and the fix can be applied safely.
+Security fixes are considered for the latest released package version and the current `master` branch. Older versions may receive fixes when the issue is severe and the fix can be applied safely.
 
 ## Reporting A Vulnerability
 
 Please do not open a public GitHub issue for a suspected vulnerability.
 
-Use GitHub's private vulnerability reporting or create a private security advisory for this repository when available. If private reporting is not enabled, contact the maintainers through the repository owner's GitHub profile or NuGet package contact information, and share only the minimum detail needed to establish contact.
+Use GitHub's private vulnerability reporting for this repository:
+**[Report a vulnerability](https://github.com/sahebansari/TerraFluent.Docx.Reporting/security/advisories/new)**.
+This opens a private advisory visible only to you and the maintainers. See also
+the [TerraFluent security page](https://terrafluent.dev/security/).
 
 Include:
 
