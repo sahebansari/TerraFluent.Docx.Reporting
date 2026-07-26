@@ -1,10 +1,15 @@
-<p align="center">
-  <img src="https://raw.githubusercontent.com/sahebansari/TerraFluent.Docx.Reporting/master/src/TerraFluent.Docx.Reporting/icon.png" alt="TerraFluent.Docx.Reporting" width="64" height="64" />
-</p>
+![TerraFluent.Docx.Reporting](https://raw.githubusercontent.com/sahebansari/TerraFluent.Docx.Reporting/master/src/TerraFluent.Docx.Reporting/icon.png)
 
 # TerraFluent.Docx.Reporting
 
+[![NuGet](https://img.shields.io/nuget/v/TerraFluent.Docx.Reporting.svg)](https://www.nuget.org/packages/TerraFluent.Docx.Reporting)
+[![NuGet downloads](https://img.shields.io/nuget/dt/TerraFluent.Docx.Reporting.svg)](https://www.nuget.org/packages/TerraFluent.Docx.Reporting)
+[![CI](https://github.com/sahebansari/TerraFluent.Docx.Reporting/actions/workflows/ci.yml/badge.svg)](https://github.com/sahebansari/TerraFluent.Docx.Reporting/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/LICENSE.txt)
+
 TerraFluent.Docx.Reporting is a fluent .NET library for generating professional `.docx` files without automating Microsoft Word. It writes Open XML packages directly and is designed for reports, invoices, proposals, policy documents, and company-branded templates.
+
+📚 **Full documentation, guides, and samples:** 🌐 [https://terrafluent.dev/docx/](https://terrafluent.dev/docx/)
 
 > **New in 1.3.0:** [Code 128 barcodes](#barcodes) rendered as crisp vector shapes, auto-numbered figure/table captions with a table of figures, document protection (Word's "Restrict Editing", with password), and richer charts (legend placement, axis titles, data labels, stacked bars, sizing and alignment). See the [changelog](https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/CHANGELOG.md) for details.
 

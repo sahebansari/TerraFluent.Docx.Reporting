@@ -8,18 +8,18 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <IsPackable>true</IsPackable>
     <PackageId>TerraFluent.Docx.Reporting</PackageId>
-    <Title>TerraFluent.Docx.Reporting</Title>
+    <Title>TerraFluent.Docx.Reporting — Word DOCX Generation for .NET</Title>
     <VersionPrefix>1.3.0</VersionPrefix>
     <Authors>TerraFluent.Docx.Reporting contributors</Authors>
     <Company>TerraFluent.Docx.Reporting contributors</Company>
     <Product>TerraFluent.Docx.Reporting</Product>
-    <Description>A fluent .NET library for generating professional DOCX documents with tables, images, charts, headers, footers, styles, templates, page layout, and Open XML validation-friendly output.</Description>
+    <Description>A fluent .NET library for generating professional DOCX documents with tables, images, charts, headers, footers, styles, templates, page layout, and Open XML validation-friendly output. Create Word documents in C# without interop.</Description>
     <PackageTags>docx;word;openxml;document-generation;reports;reporting;invoices;templates</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageReleaseNotes>See CHANGELOG.md for release notes.</PackageReleaseNotes>
-    <PackageProjectUrl>https://github.com/sahebansari/TerraFluent.Docx.Reporting</PackageProjectUrl>
+    <PackageReleaseNotes>https://github.com/sahebansari/TerraFluent.Docx.Reporting/blob/master/CHANGELOG.md</PackageReleaseNotes>
+    <PackageProjectUrl>https://terrafluent.dev/docx/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/sahebansari/TerraFluent.Docx.Reporting.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -30,6 +30,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
     <Deterministic>true</Deterministic>
+    <EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
 
   <ItemGroup>
